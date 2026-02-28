@@ -5,14 +5,42 @@ import { getConfig, setConfig, db } from '@/lib/db';
 
 const API_KEY_CONFIG = 'anthropic_api_key';
 
+type TestStatus = 'no-key' | 'testing' | 'connected' | 'invalid';
+
+async function validateApiKey(key: string): Promise<boolean> {
+    try {
+        const res = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+                'x-api-key': key,
+                'anthropic-version': '2023-06-01',
+                'anthropic-dangerous-direct-browser-access': 'true',
+                'content-type': 'application/json',
+            },
+            body: JSON.stringify({
+                model: 'claude-haiku-4-5-20251001',
+                max_tokens: 1,
+                messages: [{ role: 'user', content: 'Hi' }],
+            }),
+        });
+        return res.ok;
+    } catch {
+        return false;
+    }
+}
+
 export default function SettingsView() {
     const [apiKey, setApiKey] = useState('');
     const [showKey, setShowKey] = useState(false);
     const [saved, setSaved] = useState(false);
+    const [testStatus, setTestStatus] = useState<TestStatus>('no-key');
 
     useEffect(() => {
         getConfig(API_KEY_CONFIG).then((val) => {
-            if (val) setApiKey(val);
+            if (val) {
+                setApiKey(val);
+                setTestStatus('no-key');
+            }
         });
     }, []);
 
@@ -21,13 +49,39 @@ export default function SettingsView() {
         if (!trimmed) return;
         await setConfig(API_KEY_CONFIG, trimmed);
         setSaved(true);
+        setTestStatus('no-key');
         setTimeout(() => setSaved(false), 1200);
     }, [apiKey]);
 
     const handleClear = useCallback(async () => {
         await db.config.delete(API_KEY_CONFIG);
         setApiKey('');
+        setTestStatus('no-key');
     }, []);
+
+    const handleTest = useCallback(async () => {
+        const trimmed = apiKey.trim();
+        if (!trimmed) return;
+        setTestStatus('testing');
+        const ok = await validateApiKey(trimmed);
+        setTestStatus(ok ? 'connected' : 'invalid');
+    }, [apiKey]);
+
+    const statusLabel =
+        testStatus === 'connected'
+            ? 'Connected'
+            : testStatus === 'invalid'
+              ? 'Invalid key'
+              : testStatus === 'testing'
+                ? 'Testing…'
+                : 'No key set';
+
+    const statusColor =
+        testStatus === 'connected'
+            ? 'text-green-400'
+            : testStatus === 'invalid'
+              ? 'text-red-400'
+              : 'text-neutral-500';
 
     return (
         <div className="p-4 flex flex-col gap-6">
@@ -36,9 +90,18 @@ export default function SettingsView() {
                 <h2 className="text-sm font-medium text-neutral-400 uppercase tracking-wide">
                     AI Configuration
                 </h2>
-                <label className="text-sm text-neutral-300" htmlFor="api-key-input">
-                    Claude API Key
-                </label>
+                <div className="flex items-center justify-between">
+                    <label className="text-sm text-neutral-300" htmlFor="api-key-input">
+                        Claude API Key
+                    </label>
+                    <span
+                        className={`text-xs font-medium ${statusColor}`}
+                        role="status"
+                        aria-label={`API key status: ${statusLabel}`}
+                    >
+                        {statusLabel}
+                    </span>
+                </div>
                 <div className="flex items-center gap-2">
                     <input
                         id="api-key-input"
@@ -67,6 +130,14 @@ export default function SettingsView() {
                         Save
                     </button>
                     <button
+                        onClick={handleTest}
+                        disabled={!apiKey.trim() || testStatus === 'testing'}
+                        aria-label="Test API key"
+                        className="min-h-[44px] rounded-xl bg-neutral-800 text-neutral-300 text-sm px-4 transition-opacity disabled:opacity-30"
+                    >
+                        Test
+                    </button>
+                    <button
                         onClick={handleClear}
                         disabled={!apiKey}
                         aria-label="Clear API key"
@@ -76,7 +147,7 @@ export default function SettingsView() {
                     </button>
                 </div>
                 {saved && (
-                    <span className="text-sm text-neutral-400 animate-pulse" role="status">
+                    <span className="text-sm text-neutral-400 animate-pulse" role="alert">
                         Saved
                     </span>
                 )}
