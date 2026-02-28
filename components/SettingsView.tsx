@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { getConfig, setConfig, db } from '@/lib/db';
-import { exportNotesAsZip, downloadBlob } from '@/lib/export';
+import { exportNotesAsZip, downloadBlob, parseMarkdownNote } from '@/lib/export';
 
 const API_KEY_CONFIG = 'anthropic_api_key';
 
@@ -36,6 +36,9 @@ export default function SettingsView() {
     const [saved, setSaved] = useState(false);
     const [testStatus, setTestStatus] = useState<TestStatus>('no-key');
     const [exporting, setExporting] = useState(false);
+    const [importing, setImporting] = useState(false);
+    const [importResult, setImportResult] = useState<string | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         getConfig(API_KEY_CONFIG).then((val) => {
@@ -70,6 +73,36 @@ export default function SettingsView() {
             downloadBlob(blob, `brain2-export-${date}.zip`);
         } finally {
             setExporting(false);
+        }
+    }, []);
+
+    const handleImport = useCallback(async (files: FileList | null) => {
+        if (!files || files.length === 0) return;
+        setImporting(true);
+        setImportResult(null);
+        try {
+            const existing = await db.notes.toArray();
+            const existingTexts = new Set(existing.map((n) => n.text));
+            let imported = 0;
+            for (const file of Array.from(files)) {
+                const content = await file.text();
+                const parsed = parseMarkdownNote(content);
+                if (!existingTexts.has(parsed.text)) {
+                    await db.notes.add({
+                        text: parsed.text,
+                        tags: parsed.tags,
+                        createdAt: parsed.createdAt,
+                        archived: false,
+                    });
+                    existingTexts.add(parsed.text);
+                    imported++;
+                }
+            }
+            setImportResult(`Imported ${imported} note${imported !== 1 ? 's' : ''}`);
+            setTimeout(() => setImportResult(null), 3000);
+        } finally {
+            setImporting(false);
+            if (fileInputRef.current) fileInputRef.current.value = '';
         }
     }, []);
 
@@ -178,6 +211,28 @@ export default function SettingsView() {
                 >
                     {exporting ? 'Exporting…' : 'Export all notes (.zip)'}
                 </button>
+                <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".md"
+                    multiple
+                    className="hidden"
+                    aria-label="Select markdown files to import"
+                    onChange={(e) => handleImport(e.target.files)}
+                />
+                <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={importing}
+                    aria-label="Import notes from markdown files"
+                    className="min-h-[44px] rounded-xl bg-neutral-800 text-neutral-300 text-sm px-4 transition-opacity disabled:opacity-30 text-left"
+                >
+                    {importing ? 'Importing…' : 'Import notes (.md)'}
+                </button>
+                {importResult && (
+                    <span className="text-sm text-neutral-400" role="status" aria-live="polite">
+                        {importResult}
+                    </span>
+                )}
             </section>
         </div>
     );

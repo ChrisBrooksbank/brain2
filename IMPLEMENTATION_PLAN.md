@@ -53,7 +53,7 @@
 ### Phase 9: Import/Export
 
 - [x] Implement markdown export: generate ZIP of all non-archived notes as .md files with YAML frontmatter (date, tags), filename YYYY-MM-DD-slug.md (spec: import-export.md)
-- [ ] Implement markdown import: multi-select .md files, parse YAML frontmatter + #tag extraction from body, deduplicate by exact text match (spec: import-export.md)
+- [x] Implement markdown import: multi-select .md files, parse YAML frontmatter + #tag extraction from body, deduplicate by exact text match (spec: import-export.md)
 
 ### Phase 10: Offline & Backups
 

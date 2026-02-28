@@ -10,6 +10,8 @@ const mockNotesToArray = vi.fn();
 
 const mockExportNotesAsZip = vi.fn();
 const mockDownloadBlob = vi.fn();
+const mockParseMarkdownNote = vi.fn();
+const mockNotesAdd = vi.fn();
 
 vi.mock('@/lib/db', () => ({
     getConfig: (...args: unknown[]) => mockGetConfig(...args),
@@ -20,6 +22,7 @@ vi.mock('@/lib/db', () => ({
         },
         notes: {
             toArray: (...args: unknown[]) => mockNotesToArray(...args),
+            add: (...args: unknown[]) => mockNotesAdd(...args),
         },
     },
 }));
@@ -27,6 +30,7 @@ vi.mock('@/lib/db', () => ({
 vi.mock('@/lib/export', () => ({
     exportNotesAsZip: (...args: unknown[]) => mockExportNotesAsZip(...args),
     downloadBlob: (...args: unknown[]) => mockDownloadBlob(...args),
+    parseMarkdownNote: (...args: unknown[]) => mockParseMarkdownNote(...args),
 }));
 
 beforeEach(() => {
@@ -37,6 +41,12 @@ beforeEach(() => {
     mockNotesToArray.mockResolvedValue([]);
     mockExportNotesAsZip.mockResolvedValue(new Blob());
     mockDownloadBlob.mockReturnValue(undefined);
+    mockNotesAdd.mockResolvedValue(1);
+    mockParseMarkdownNote.mockReturnValue({
+        text: 'Imported note text',
+        tags: ['tag1'],
+        createdAt: new Date('2024-01-01'),
+    });
     vi.stubGlobal('fetch', mockFetch);
 });
 
@@ -221,6 +231,42 @@ describe('SettingsView', () => {
             expect(mockNotesToArray).toHaveBeenCalled();
             expect(mockExportNotesAsZip).toHaveBeenCalledWith([]);
             expect(mockDownloadBlob).toHaveBeenCalledWith(fakeBlob, expect.stringMatching(/brain2-export-.*\.zip/));
+        });
+    });
+
+    it('renders Import notes button', () => {
+        render(<SettingsView />);
+        expect(screen.getByRole('button', { name: /import notes/i })).toBeInTheDocument();
+    });
+
+    it('imports new notes and shows result count', async () => {
+        mockNotesToArray.mockResolvedValue([]);
+        render(<SettingsView />);
+        const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+        const file = new File(['# Note content'], 'note.md', { type: 'text/markdown' });
+        await act(async () => {
+            fireEvent.change(fileInput, { target: { files: [file] } });
+        });
+        await waitFor(() => {
+            expect(mockParseMarkdownNote).toHaveBeenCalled();
+            expect(mockNotesAdd).toHaveBeenCalled();
+            expect(screen.getByText('Imported 1 note')).toBeInTheDocument();
+        });
+    });
+
+    it('skips duplicate notes by exact text match', async () => {
+        mockNotesToArray.mockResolvedValue([
+            { id: 1, text: 'Imported note text', tags: [], createdAt: new Date(), archived: false },
+        ]);
+        render(<SettingsView />);
+        const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+        const file = new File(['# Note content'], 'note.md', { type: 'text/markdown' });
+        await act(async () => {
+            fireEvent.change(fileInput, { target: { files: [file] } });
+        });
+        await waitFor(() => {
+            expect(mockNotesAdd).not.toHaveBeenCalled();
+            expect(screen.getByText('Imported 0 notes')).toBeInTheDocument();
         });
     });
 });
