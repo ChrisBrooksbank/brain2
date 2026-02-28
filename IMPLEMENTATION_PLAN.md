@@ -33,7 +33,7 @@
 
 ### Phase 5: Notes Browsing View
 
-- [ ] Build notes browsing view: reverse chronological list with note cards, expand/collapse, archive and delete actions (spec: notes-browsing.md)
+- [x] Build notes browsing view: reverse chronological list with note cards, expand/collapse, archive and delete actions (spec: notes-browsing.md)
 - [ ] Add tag filter to notes view: display all unique tags as chips, clicking a chip filters the list (spec: notes-browsing.md)
 
 ### Phase 6: Review View
