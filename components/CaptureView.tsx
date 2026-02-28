@@ -65,6 +65,7 @@ export default function CaptureView() {
 
         const recognition = new SpeechRecognition();
         recognition.lang = 'en-US';
+        recognition.continuous = true;
         recognition.interimResults = false;
         recognition.maxAlternatives = 1;
 
