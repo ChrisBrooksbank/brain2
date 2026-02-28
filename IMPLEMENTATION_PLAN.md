@@ -18,7 +18,7 @@
 
 ### Phase 2: Database
 
-- [ ] Define Dexie database schema: Notes table (++id, text, tags[], createdAt, archived) and Config table (key, value) (spec: capture.md)
+- [x] Define Dexie database schema: Notes table (++id, text, tags[], createdAt, archived) and Config table (key, value) (spec: capture.md)
 - [ ] Create database mutation helpers: addNote, updateNote, archiveNote, deleteNote, getConfig, setConfig (spec: capture.md)
 
 ### Phase 3: Layout & Navigation
