@@ -42,7 +42,7 @@
 
 ### Phase 7: Search View
 
-- [ ] Build search view: text input, debounced ~200ms full-text case-insensitive search, includes archived notes with visual indicator, highlighted match terms (spec: search.md)
+- [x] Build search view: text input, debounced ~200ms full-text case-insensitive search, includes archived notes with visual indicator, highlighted match terms (spec: search.md)
 
 ### Phase 8: Settings & AI
 
