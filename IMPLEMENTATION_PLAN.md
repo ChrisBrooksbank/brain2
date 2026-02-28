@@ -29,7 +29,7 @@
 ### Phase 4: Capture View
 
 - [x] Build capture view: auto-focused textarea, Save button, Ctrl+Enter shortcut, saves note to Dexie (spec: capture.md)
-- [ ] Add voice input to capture view using Web Speech API mic button, appends transcript to textarea (spec: capture.md)
+- [x] Add voice input to capture view using Web Speech API mic button, appends transcript to textarea (spec: capture.md)
 
 ### Phase 5: Notes Browsing View
 

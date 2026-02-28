@@ -9,8 +9,55 @@ vi.mock('@/lib/db', () => ({
 import { addNote } from '@/lib/db';
 const mockAddNote = vi.mocked(addNote);
 
+function makeMockRecognition() {
+    const handlers: Record<string, ((e: unknown) => void) | null> = {
+        onresult: null,
+        onend: null,
+        onerror: null,
+    };
+    const mock = {
+        lang: '',
+        interimResults: false,
+        maxAlternatives: 1,
+        start: vi.fn(),
+        stop: vi.fn(() => {
+            handlers.onend?.(undefined);
+        }),
+        set onresult(fn: ((e: unknown) => void) | null) {
+            handlers.onresult = fn;
+        },
+        get onresult() {
+            return handlers.onresult;
+        },
+        set onend(fn: ((e: unknown) => void) | null) {
+            handlers.onend = fn;
+        },
+        get onend() {
+            return handlers.onend;
+        },
+        set onerror(fn: ((e: unknown) => void) | null) {
+            handlers.onerror = fn;
+        },
+        get onerror() {
+            return handlers.onerror;
+        },
+        _fireResult(transcript: string) {
+            handlers.onresult?.({
+                results: [[{ transcript }]],
+            });
+        },
+        _fireEnd() {
+            handlers.onend?.(undefined);
+        },
+    };
+    return mock;
+}
+
 beforeEach(() => {
     mockAddNote.mockClear();
+    // Remove any SpeechRecognition mock between tests
+    delete (window as unknown as Record<string, unknown>).SpeechRecognition;
+    delete (window as unknown as Record<string, unknown>).webkitSpeechRecognition;
 });
 
 describe('CaptureView', () => {
@@ -84,5 +131,112 @@ describe('CaptureView', () => {
             fireEvent.keyDown(textarea, { key: 'Enter', ctrlKey: true });
         });
         expect(mockAddNote).not.toHaveBeenCalled();
+    });
+
+    describe('mic button', () => {
+        it('renders a mic button', () => {
+            render(<CaptureView />);
+            expect(screen.getByRole('button', { name: /start recording/i })).toBeInTheDocument();
+        });
+
+        it('does not crash when SpeechRecognition is unavailable', () => {
+            render(<CaptureView />);
+            // SpeechRecognition is not set in jsdom — clicking should be a no-op
+            expect(() => {
+                fireEvent.click(screen.getByRole('button', { name: /start recording/i }));
+            }).not.toThrow();
+        });
+
+        it('starts recognition and shows listening state', async () => {
+            const mockRec = makeMockRecognition();
+            (window as unknown as Record<string, unknown>).SpeechRecognition = vi.fn(function () {
+                return mockRec;
+            });
+
+            render(<CaptureView />);
+            const micBtn = screen.getByRole('button', { name: /start recording/i });
+
+            await act(async () => {
+                fireEvent.click(micBtn);
+            });
+
+            expect(mockRec.start).toHaveBeenCalledOnce();
+            expect(screen.getByRole('button', { name: /stop recording/i })).toBeInTheDocument();
+        });
+
+        it('appends transcript to textarea when speech is recognized', async () => {
+            const mockRec = makeMockRecognition();
+            (window as unknown as Record<string, unknown>).SpeechRecognition = vi.fn(function () {
+                return mockRec;
+            });
+
+            render(<CaptureView />);
+            await act(async () => {
+                fireEvent.click(screen.getByRole('button', { name: /start recording/i }));
+            });
+
+            await act(async () => {
+                mockRec._fireResult('hello world');
+            });
+
+            expect(screen.getByRole('textbox')).toHaveValue('hello world');
+        });
+
+        it('appends to existing text with a space', async () => {
+            const mockRec = makeMockRecognition();
+            (window as unknown as Record<string, unknown>).SpeechRecognition = vi.fn(function () {
+                return mockRec;
+            });
+
+            render(<CaptureView />);
+            fireEvent.change(screen.getByRole('textbox'), { target: { value: 'existing' } });
+
+            await act(async () => {
+                fireEvent.click(screen.getByRole('button', { name: /start recording/i }));
+            });
+
+            await act(async () => {
+                mockRec._fireResult('more text');
+            });
+
+            expect(screen.getByRole('textbox')).toHaveValue('existing more text');
+        });
+
+        it('stops recognition and returns to idle on second click', async () => {
+            const mockRec = makeMockRecognition();
+            (window as unknown as Record<string, unknown>).SpeechRecognition = vi.fn(function () {
+                return mockRec;
+            });
+
+            render(<CaptureView />);
+            await act(async () => {
+                fireEvent.click(screen.getByRole('button', { name: /start recording/i }));
+            });
+
+            await act(async () => {
+                fireEvent.click(screen.getByRole('button', { name: /stop recording/i }));
+            });
+
+            expect(mockRec.stop).toHaveBeenCalledOnce();
+            expect(screen.getByRole('button', { name: /start recording/i })).toBeInTheDocument();
+        });
+
+        it('returns to idle state when recognition ends naturally', async () => {
+            const mockRec = makeMockRecognition();
+            (window as unknown as Record<string, unknown>).SpeechRecognition = vi.fn(function () {
+                return mockRec;
+            });
+
+            render(<CaptureView />);
+            await act(async () => {
+                fireEvent.click(screen.getByRole('button', { name: /start recording/i }));
+            });
+
+            await act(async () => {
+                mockRec._fireEnd();
+            });
+
+            expect(screen.getByRole('button', { name: /start recording/i })).toBeInTheDocument();
+        });
     });
 });

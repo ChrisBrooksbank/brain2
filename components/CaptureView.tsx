@@ -6,7 +6,9 @@ import { addNote } from '@/lib/db';
 export default function CaptureView() {
     const [text, setText] = useState('');
     const [saved, setSaved] = useState(false);
+    const [isListening, setIsListening] = useState(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const recognitionRef = useRef<SpeechRecognition | null>(null);
 
     useEffect(() => {
         textareaRef.current?.focus();
@@ -32,6 +34,39 @@ export default function CaptureView() {
         [handleSave],
     );
 
+    const handleMic = useCallback(() => {
+        const SpeechRecognition = window.SpeechRecognition ?? window.webkitSpeechRecognition;
+        if (!SpeechRecognition) return;
+
+        if (isListening) {
+            recognitionRef.current?.stop();
+            setIsListening(false);
+            return;
+        }
+
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'en-US';
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        recognition.onresult = (event: SpeechRecognitionEvent) => {
+            const transcript = event.results[0][0].transcript;
+            setText((prev) => (prev ? prev + ' ' + transcript : transcript));
+        };
+
+        recognition.onend = () => {
+            setIsListening(false);
+        };
+
+        recognition.onerror = () => {
+            setIsListening(false);
+        };
+
+        recognitionRef.current = recognition;
+        recognition.start();
+        setIsListening(true);
+    }, [isListening]);
+
     const isEmpty = text.trim().length === 0;
 
     return (
@@ -46,6 +81,14 @@ export default function CaptureView() {
                 aria-label="Note text"
             />
             <div className="flex items-center gap-3">
+                <button
+                    onClick={handleMic}
+                    aria-label={isListening ? 'Stop recording' : 'Start recording'}
+                    aria-pressed={isListening}
+                    className={`min-h-[44px] min-w-[44px] rounded-xl text-xl transition-colors ${isListening ? 'bg-red-500 text-white' : 'bg-neutral-800 text-neutral-300'}`}
+                >
+                    🎙
+                </button>
                 <button
                     onClick={handleSave}
                     disabled={isEmpty}
