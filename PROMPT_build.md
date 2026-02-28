@@ -21,6 +21,7 @@ Read relevant existing code to understand patterns and conventions.
 ## 1. Implement the Task
 
 Write code to complete the task:
+
 - Follow existing code patterns
 - Write tests for new functionality
 - Keep changes focused on the single task
@@ -30,6 +31,7 @@ Write code to complete the task:
 Run the validation command from AGENTS.md (`npm run check`).
 
 If validation fails:
+
 - Fix the issues
 - Run validation again
 - Repeat until passing
@@ -37,6 +39,7 @@ If validation fails:
 ## 3. Update Plan and Exit
 
 After validation passes:
+
 1. Mark the task complete in IMPLEMENTATION_PLAN.md: `- [ ]` becomes `- [x]`
 2. Exit cleanly
 

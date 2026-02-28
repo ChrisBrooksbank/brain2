@@ -27,3 +27,12 @@ npm-debug.log*
 
 # Coverage
 coverage/
+
+# Next.js
+.next/
+out/
+
+# Playwright
+test-results/
+playwright-report/
+blob-report/

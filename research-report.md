@@ -35,6 +35,7 @@ The most exciting development in 2026? Connecting tools like Obsidian directly t
 ### Tier 1: The Heavyweights
 
 #### Obsidian
+
 - **Philosophy**: Local-first, privacy-first, your data is just Markdown files on your filesystem
 - **Key Features**: Bidirectional linking, graph visualization, 1,800+ community plugins, canvas/whiteboard view, new "Bases" feature (Notion-style database views)
 - **What Makes It Unique**: Complete data ownership. If Obsidian disappears tomorrow, your notes are still plain text files. The plugin ecosystem is unmatched — there's a plugin for everything from Zettelkasten workflows to spaced repetition flashcards
@@ -44,6 +45,7 @@ The most exciting development in 2026? Connecting tools like Obsidian directly t
 - **2026 Update**: Refreshed UI with auto-hiding navigation, "Bases" feature bringing database views to local-first Markdown
 
 #### Notion
+
 - **Philosophy**: All-in-one workspace — notes, databases, wikis, project management
 - **Key Features**: Flexible block-based editor, relational databases, templates, team collaboration, Notion AI
 - **What Makes It Unique**: Swiss Army knife approach. It can be a second brain, a project tracker, a wiki, and a CRM simultaneously. Unmatched flexibility in how you structure information
@@ -53,6 +55,7 @@ The most exciting development in 2026? Connecting tools like Obsidian directly t
 - **Weakness**: Cloud-dependent, can feel slow with large databases
 
 #### Logseq
+
 - **Philosophy**: Open-source outliner with bidirectional linking — everything is bullets
 - **Key Features**: Daily journals, knowledge graph, whiteboards, flashcards, PDF annotation, full Zettelkasten support
 - **What Makes It Unique**: 100% free with features other apps charge for. Open-source transparency. Outliner-first approach makes it natural for brainstorming and hierarchical thinking
@@ -64,6 +67,7 @@ The most exciting development in 2026? Connecting tools like Obsidian directly t
 ### Tier 2: The AI-Native Innovators
 
 #### Mem 2.0 (October 2025 rebuild)
+
 - **Philosophy**: Kill the folder. Let AI handle organization entirely
 - **Key Features**: Smart capture with voice mode, agentic AI layer that acts on your notes (drafts emails, generates summaries), automatic relationship discovery between notes
 - **What Makes It Unique**: The most aggressive bet on AI-first knowledge management. No folders, no manual tagging, no organizational overhead. You dump thoughts in; AI makes them findable and actionable
@@ -71,6 +75,7 @@ The most exciting development in 2026? Connecting tools like Obsidian directly t
 - **Best For**: People who hate organizing but love capturing
 
 #### Tana
+
 - **Philosophy**: Everything is a node. Structure your world with supertags
 - **Key Features**: Dynamic node-based system, supertags (schemas that define properties for types of content), built-in AI for auto-tagging and summarization, powerful query/views system
 - **What Makes It Unique**: Most sophisticated structured knowledge system available. Supertags let you define schemas (e.g., a "Meeting" supertag auto-creates fields for attendees, action items, date). Dynamic views pull matching nodes automatically — like a personal database that writes itself
@@ -78,6 +83,7 @@ The most exciting development in 2026? Connecting tools like Obsidian directly t
 - **Best For**: Systems thinkers, data architects, people who think in structures
 
 #### Reflect
+
 - **Philosophy**: Speed above all else — open and type in under 1 second
 - **Key Features**: Instant capture, voice notes with AI transcription, bidirectional linking, daily notes, end-to-end encryption
 - **What Makes It Unique**: Obsessive focus on capture speed. The app loads instantly. Voice transcription is nearly real-time. It's designed for people who think faster than they type
@@ -89,6 +95,7 @@ The most exciting development in 2026? Connecting tools like Obsidian directly t
 ### Tier 3: The Frontier — Ambient & Passive Capture
 
 #### TwinMind
+
 - **Philosophy**: Your AI memory — captures ambient speech to build a personal knowledge graph
 - **Key Features**: Background recording of meetings/conversations (up to 17 hours), real-time transcription, auto-generated notes and to-dos, personal knowledge graph from spoken thoughts
 - **What Makes It Unique**: Zero-friction capture. You don't take notes — TwinMind listens and creates them. Co-founded by ex-Google X employees, $5.7M seed round (Sequoia participated)
@@ -97,6 +104,7 @@ The most exciting development in 2026? Connecting tools like Obsidian directly t
 - **Best For**: Meeting-heavy professionals, people with ADHD, anyone who forgets what was said 5 minutes ago
 
 #### Rewind AI
+
 - **Philosophy**: Record everything you see, say, or hear — make it all searchable
 - **Key Features**: Records screen activity, meetings, and conversations; instant search across your entire digital history; local-only processing
 - **What Makes It Unique**: The most ambitious ambient capture tool. It essentially gives you a photographic memory of your digital life
@@ -104,6 +112,7 @@ The most exciting development in 2026? Connecting tools like Obsidian directly t
 - **Best For**: Executives, anyone who needs to recall exact conversations or screen content
 
 #### Google NotebookLM
+
 - **Philosophy**: AI research assistant grounded in your sources
 - **Key Features**: Ingests Google Docs, Slides, PDFs, text, Markdown, URLs, YouTube videos, audio files (up to 500K words per source); generates source-grounded responses with citations; "Audio Overviews" — AI-generated podcast-style discussions about your sources
 - **What Makes It Unique**: The "Audio Overviews" feature (AI-generated 2-person conversations about your content) is genuinely novel. Strong grounding in source material reduces hallucination
@@ -115,16 +124,19 @@ The most exciting development in 2026? Connecting tools like Obsidian directly t
 ### Tier 4: Spatial & Visual Thinkers
 
 #### Heptabase
+
 - **Philosophy**: Think visually with infinite whiteboards
 - **Key Features**: Card-based system on an infinite canvas, spatial relationship mapping, PDF annotation, offline access
 - **Best For**: Researchers who think spatially, visual learners
 
 #### Kosmik
+
 - **Philosophy**: Your research desk, digitized
 - **Key Features**: Infinite canvas with built-in browser and PDF reader, spatially organize any digital content (text, images, videos, PDFs, web links)
 - **Best For**: Research workflows requiring simultaneous access to sources and workspace
 
 #### Capacities
+
 - **Philosophy**: Objects, not pages — like a personal wiki with structure
 - **Key Features**: Define entity types (Person, Book, Topic) with properties, smart filters, balanced power and usability
 - **Best For**: Structured data lovers, CRM-style personal knowledge
@@ -134,23 +146,27 @@ The most exciting development in 2026? Connecting tools like Obsidian directly t
 ### Tier 5: Open Source & Developer-Focused
 
 #### Khoj (GitHub)
+
 - **Philosophy**: Self-hostable AI second brain
 - **Key Features**: Get answers from web or your docs, build custom agents, schedule automations, deep research capabilities
 - **LLM Support**: GPT, Claude, Gemini, Llama, Qwen, Mistral
 - **Best For**: Developers who want full control over their AI knowledge system
 
 #### COG (Cognition + Obsidian + Git)
+
 - **Philosophy**: Self-evolving second brain using AI agents
 - **Key Features**: Markdown files + version control + AI agents. No database, no vendor lock-in. MIT licensed
 - **Stats**: 120+ braindumps processed, 95%+ source accuracy
 - **Best For**: Developers who live in Git and want their second brain version-controlled
 
 #### AFFiNE
+
 - **Philosophy**: Open-source, local-first alternative to Notion
 - **Key Features**: Merges Notion's structure with Miro's visual freedom, AI-powered, end-to-end encrypted
 - **Best For**: Notion refugees who want open-source and local-first
 
 #### Anytype
+
 - **Philosophy**: Peer-to-peer, encrypted, no central server
 - **Key Features**: Notion-like features (databases, kanban, nested pages) but P2P synced directly between your devices
 - **Best For**: Privacy maximalists
@@ -160,18 +176,21 @@ The most exciting development in 2026? Connecting tools like Obsidian directly t
 ## Part 3: Key Methodologies
 
 ### PARA Method (Tiago Forte)
+
 - **Projects**: Active initiatives with deadlines (e.g., "Ship v1.0")
 - **Areas**: Ongoing responsibilities (e.g., "Health", "Career")
 - **Resources**: Reference material for future use (e.g., "TypeScript patterns")
 - **Archives**: Inactive items from the above three categories
 
 ### Zettelkasten Method
+
 - Create atomic notes (one idea per note)
 - Link notes to each other based on conceptual relationships
 - Ideas compound over time through emergent connections
 - Best combined with PARA — PARA handles organization, Zettelkasten handles deep thinking
 
 ### CODE (Capture, Organize, Distill, Express)
+
 - **Capture**: Save interesting information from any source
 - **Organize**: Place it where it will be most useful (PARA)
 - **Distill**: Extract the key insights (progressive summarization)
@@ -181,16 +200,16 @@ The most exciting development in 2026? Connecting tools like Obsidian directly t
 
 ## Part 4: Technology Trends Shaping Second Brains in 2026
 
-| Trend | Description | Example |
-|-------|-------------|---------|
-| **RAG (Retrieval-Augmented Generation)** | Query your personal knowledge base using LLMs, grounded in your actual notes | Khoj, NotebookLM |
-| **Ambient Capture** | Passive recording of meetings, conversations, screen activity | TwinMind, Rewind AI |
-| **Agentic AI** | AI that doesn't just organize but acts — drafting, summarizing, connecting | Mem 2.0, Tana |
-| **Knowledge Graphs** | Semantic relationship mapping beyond simple backlinks | Obsidian graph view, Tana supertags |
-| **Vector Embeddings + Semantic Search** | Find notes by meaning, not keywords | ChromaDB, Pinecone integrations |
-| **MCP Integration** | Connect AI assistants directly to your knowledge vault | Obsidian + Claude Code |
-| **Local-First Architecture** | Data sovereignty — your notes never leave your device | Obsidian, AFFiNE, Anytype |
-| **Multi-Modal Ingestion** | Accept text, audio, video, PDFs, web pages, social media | NotebookLM, The Second Brain |
+| Trend                                    | Description                                                                  | Example                             |
+| ---------------------------------------- | ---------------------------------------------------------------------------- | ----------------------------------- |
+| **RAG (Retrieval-Augmented Generation)** | Query your personal knowledge base using LLMs, grounded in your actual notes | Khoj, NotebookLM                    |
+| **Ambient Capture**                      | Passive recording of meetings, conversations, screen activity                | TwinMind, Rewind AI                 |
+| **Agentic AI**                           | AI that doesn't just organize but acts — drafting, summarizing, connecting   | Mem 2.0, Tana                       |
+| **Knowledge Graphs**                     | Semantic relationship mapping beyond simple backlinks                        | Obsidian graph view, Tana supertags |
+| **Vector Embeddings + Semantic Search**  | Find notes by meaning, not keywords                                          | ChromaDB, Pinecone integrations     |
+| **MCP Integration**                      | Connect AI assistants directly to your knowledge vault                       | Obsidian + Claude Code              |
+| **Local-First Architecture**             | Data sovereignty — your notes never leave your device                        | Obsidian, AFFiNE, Anytype           |
+| **Multi-Modal Ingestion**                | Accept text, audio, video, PDFs, web pages, social media                     | NotebookLM, The Second Brain        |
 
 ---
 

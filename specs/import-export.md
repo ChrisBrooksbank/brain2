@@ -12,6 +12,7 @@ Obsidian-compatible markdown import and export for data portability.
 ## Requirements
 
 ### Export
+
 - [ ] "Export all" button in Settings
 - [ ] Generates a .zip file containing all notes as .md files
 - [ ] Each file has YAML frontmatter (date, tags)
@@ -19,6 +20,7 @@ Obsidian-compatible markdown import and export for data portability.
 - [ ] Compatible with Obsidian vault import
 
 ### Import
+
 - [ ] "Import notes" button in Settings — opens file picker for .md files
 - [ ] Parses YAML frontmatter for date and tags
 - [ ] Supports Obsidian-style #tags in body text (extracted as tags)

@@ -13,6 +13,7 @@ Read IMPLEMENTATION_PLAN.md to understand what tasks exist and their status.
 ## 0c. Examine Codebase
 
 Using parallel subagents, explore the existing codebase to understand:
+
 - What's already implemented
 - Code patterns and conventions
 - Test structure
@@ -20,6 +21,7 @@ Using parallel subagents, explore the existing codebase to understand:
 ## 1. Gap Analysis
 
 Compare the specifications against the existing codebase:
+
 - What requirements are fully implemented?
 - What requirements are partially implemented?
 - What requirements have no implementation?
@@ -27,12 +29,14 @@ Compare the specifications against the existing codebase:
 ## 2. Update Implementation Plan
 
 Update IMPLEMENTATION_PLAN.md with:
+
 - New tasks for unimplemented requirements
 - Refined tasks based on what you learned
 - Clear priority order (most important first)
 - Mark any completed tasks as done
 
 Format tasks as:
+
 ```
 - [ ] Task description (spec: filename.md)
 - [x] Completed task

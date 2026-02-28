@@ -1,0 +1,17 @@
+{
+    "entry": ["app/**/*.{ts,tsx}"],
+    "project": ["**/*.{ts,tsx}"],
+    "next": {
+        "entry": ["next.config.{js,ts,mjs}", "app/**/*.{ts,tsx}"]
+    },
+    "ignoreDependencies": [
+        "@anthropic-ai/sdk",
+        "@serwist/next",
+        "dexie",
+        "dexie-react-hooks",
+        "serwist",
+        "@testing-library/react",
+        "tailwindcss",
+        "postcss"
+    ]
+}

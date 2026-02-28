@@ -13,28 +13,33 @@ Progressive Web App setup for installability, offline access, and mobile-native 
 ## Requirements
 
 ### PWA
+
 - [ ] Web manifest with app name, icons, theme color, standalone display
 - [ ] Service worker via Serwist (@serwist/next) with precache + runtime cache
 - [ ] Apple touch icon and splash screen meta tags
 - [ ] Install prompt or browser-native install support
 
 ### Offline
+
 - [ ] All views work without network connection
 - [ ] Note capture works offline
 - [ ] IndexedDB data persists across sessions
 
 ### Navigation
+
 - [ ] Bottom tab bar: Capture (/), Notes (/notes), Review (/review), Settings (/settings)
 - [ ] Active tab highlighted
 - [ ] Safe area padding for iPhone home indicator (env(safe-area-inset-bottom))
 - [ ] Mobile-optimized touch targets (min 44px)
 
 ### Backups
+
 - [ ] Daily auto-snapshot in IndexedDB (on app open, if last backup >24h ago)
 - [ ] Rolling 7-day backup history
 - [ ] Manual "Download Backup" button in Settings
 
 ### Polish
+
 - [ ] Haptic feedback on save/archive: navigator.vibrate?.(10)
 - [ ] Mobile viewport: h-dvh, no zoom (maximumScale: 1)
 - [ ] Dark theme (bg-neutral-950, text-white)

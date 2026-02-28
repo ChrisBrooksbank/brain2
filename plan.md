@@ -6,14 +6,14 @@ You have bad short-term memory and want a "second brain" — a place to quickly 
 
 ## Tech Stack
 
-| Layer | Choice | Why |
-|-------|--------|-----|
-| Framework | Next.js 15 (App Router) | You know React, SSR for shell, client components for data |
-| Language | TypeScript | Safety |
-| Styling | Tailwind CSS v4 | Ships with create-next-app, CSS-first config |
-| Storage | IndexedDB via **Dexie.js v4** | Reactive `useLiveQuery` hooks, no state library needed |
-| PWA | **Serwist** (@serwist/next) | Maintained successor to next-pwa |
-| AI | Claude API (direct browser call) | User provides their own key, BYOK pattern |
+| Layer     | Choice                           | Why                                                       |
+| --------- | -------------------------------- | --------------------------------------------------------- |
+| Framework | Next.js 15 (App Router)          | You know React, SSR for shell, client components for data |
+| Language  | TypeScript                       | Safety                                                    |
+| Styling   | Tailwind CSS v4                  | Ships with create-next-app, CSS-first config              |
+| Storage   | IndexedDB via **Dexie.js v4**    | Reactive `useLiveQuery` hooks, no state library needed    |
+| PWA       | **Serwist** (@serwist/next)      | Maintained successor to next-pwa                          |
+| AI        | Claude API (direct browser call) | User provides their own key, BYOK pattern                 |
 
 **Total added deps**: `@serwist/next`, `serwist`, `dexie`, `dexie-react-hooks`, `@anthropic-ai/sdk` (5 packages)
 
@@ -49,12 +49,12 @@ brain2/
 
 ```ts
 interface Note {
-  id?: number;
-  text: string;
-  category: "inbox" | "ideas" | "tasks" | "archive";
-  tags: string[];
-  createdAt: Date;
-  updatedAt: Date;
+    id?: number;
+    text: string;
+    category: 'inbox' | 'ideas' | 'tasks' | 'archive';
+    tags: string[];
+    createdAt: Date;
+    updatedAt: Date;
 }
 ```
 
@@ -67,180 +67,190 @@ interface Note {
 1. `npx create-next-app@latest . --ts --tailwind --eslint --app --src-dir=false --import-alias="@/*" --turbopack`
 2. Install deps: `npm i @serwist/next dexie dexie-react-hooks @anthropic-ai/sdk && npm i -D serwist`
 3. Create `app/sw.ts` — Serwist service worker with precache + runtime cache:
-   ```ts
-   import { defaultCache } from "@serwist/next/worker";
-   import type { PrecacheEntry, SerwistGlobalConfig } from "serwist";
-   import { Serwist } from "serwist";
 
-   declare global {
-     interface WorkerGlobalScope extends SerwistGlobalConfig {
-       __SW_MANIFEST: (PrecacheEntry | string)[] | undefined;
-     }
-   }
-   declare const self: ServiceWorkerGlobalScope & typeof globalThis;
+    ```ts
+    import { defaultCache } from '@serwist/next/worker';
+    import type { PrecacheEntry, SerwistGlobalConfig } from 'serwist';
+    import { Serwist } from 'serwist';
 
-   const serwist = new Serwist({
-     precacheEntries: self.__SW_MANIFEST,
-     skipWaiting: true,
-     clientsClaim: true,
-     navigationPreload: true,
-     runtimeCaching: defaultCache,
-   });
-   serwist.addEventListeners();
-   ```
+    declare global {
+        interface WorkerGlobalScope extends SerwistGlobalConfig {
+            __SW_MANIFEST: (PrecacheEntry | string)[] | undefined;
+        }
+    }
+    declare const self: ServiceWorkerGlobalScope & typeof globalThis;
+
+    const serwist = new Serwist({
+        precacheEntries: self.__SW_MANIFEST,
+        skipWaiting: true,
+        clientsClaim: true,
+        navigationPreload: true,
+        runtimeCaching: defaultCache,
+    });
+    serwist.addEventListeners();
+    ```
+
 4. Create `app/manifest.ts` — PWA manifest:
-   ```ts
-   import type { MetadataRoute } from "next";
-   export default function manifest(): MetadataRoute.Manifest {
-     return {
-       name: "Brain2",
-       short_name: "Brain2",
-       description: "Your second brain — capture, review, rediscover",
-       start_url: "/",
-       display: "standalone",
-       background_color: "#0a0a0a",
-       theme_color: "#0a0a0a",
-       icons: [
-         { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
-         { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
-       ],
-     };
-   }
-   ```
+    ```ts
+    import type { MetadataRoute } from 'next';
+    export default function manifest(): MetadataRoute.Manifest {
+        return {
+            name: 'Brain2',
+            short_name: 'Brain2',
+            description: 'Your second brain — capture, review, rediscover',
+            start_url: '/',
+            display: 'standalone',
+            background_color: '#0a0a0a',
+            theme_color: '#0a0a0a',
+            icons: [
+                { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+                { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+            ],
+        };
+    }
+    ```
 5. Wrap `next.config.mjs` with `withSerwist()`:
-   ```ts
-   import withSerwistInit from "@serwist/next";
-   const withSerwist = withSerwistInit({
-     swSrc: "app/sw.ts",
-     swDest: "public/sw.js",
-     disable: process.env.NODE_ENV === "development",
-   });
-   export default withSerwist({});
-   ```
+    ```ts
+    import withSerwistInit from '@serwist/next';
+    const withSerwist = withSerwistInit({
+        swSrc: 'app/sw.ts',
+        swDest: 'public/sw.js',
+        disable: process.env.NODE_ENV === 'development',
+    });
+    export default withSerwist({});
+    ```
 6. Update `tsconfig.json` — add `"webworker"` to `compilerOptions.lib`, `"@serwist/next/typings"` to `compilerOptions.types`, `"public/sw.js"` to `exclude`
 7. Update `.gitignore` — add `public/sw*` and `public/swe-worker*`
 8. Update `app/layout.tsx`:
-   ```ts
-   export const metadata: Metadata = {
-     title: "Brain2",
-     description: "Your second brain",
-     appleWebApp: { capable: true, statusBarStyle: "default", title: "Brain2" },
-     formatDetection: { telephone: false },
-   };
-   export const viewport: Viewport = {
-     themeColor: "#0a0a0a",
-     width: "device-width",
-     initialScale: 1,
-     maximumScale: 1,
-     userScalable: false,
-   };
-   ```
-   Body: `<body className="bg-neutral-950 text-white h-dvh flex flex-col">` with `<main className="flex-1 overflow-hidden">` wrapping children, and `<BottomNav />` at the bottom.
+    ```ts
+    export const metadata: Metadata = {
+        title: 'Brain2',
+        description: 'Your second brain',
+        appleWebApp: { capable: true, statusBarStyle: 'default', title: 'Brain2' },
+        formatDetection: { telephone: false },
+    };
+    export const viewport: Viewport = {
+        themeColor: '#0a0a0a',
+        width: 'device-width',
+        initialScale: 1,
+        maximumScale: 1,
+        userScalable: false,
+    };
+    ```
+    Body: `<body className="bg-neutral-950 text-white h-dvh flex flex-col">` with `<main className="flex-1 overflow-hidden">` wrapping children, and `<BottomNav />` at the bottom.
 9. Create placeholder PWA icons (192px, 512px) in `public/icons/`
 
 ### Phase 2: Database + Hooks
 
 **`lib/db.ts`** — Dexie instance:
+
 ```ts
-import Dexie, { type EntityTable } from "dexie";
+import Dexie, { type EntityTable } from 'dexie';
 
 export interface Note {
-  id?: number;
-  text: string;
-  category: "inbox" | "ideas" | "tasks" | "archive";
-  tags: string[];
-  createdAt: Date;
-  updatedAt: Date;
+    id?: number;
+    text: string;
+    category: 'inbox' | 'ideas' | 'tasks' | 'archive';
+    tags: string[];
+    createdAt: Date;
+    updatedAt: Date;
 }
 
 export interface Config {
-  key: string;
-  value: string;
+    key: string;
+    value: string;
 }
 
-const db = new Dexie("brain2") as Dexie & {
-  notes: EntityTable<Note, "id">;
-  config: EntityTable<Config, "key">;
+const db = new Dexie('brain2') as Dexie & {
+    notes: EntityTable<Note, 'id'>;
+    config: EntityTable<Config, 'key'>;
 };
 
 db.version(1).stores({
-  notes: "++id, category, createdAt",
-  config: "key",
+    notes: '++id, category, createdAt',
+    config: 'key',
 });
 
 export { db };
 ```
 
 **`lib/hooks.ts`** — Reactive hooks + mutation functions:
+
 ```ts
-"use client";
-import { useLiveQuery } from "dexie-react-hooks";
-import { db, type Note } from "./db";
+'use client';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db, type Note } from './db';
 
 // All notes for a category, newest first
-export function useNotes(category?: Note["category"]) {
-  return useLiveQuery(() => {
-    if (category) {
-      return db.notes.where("category").equals(category).reverse().sortBy("createdAt");
-    }
-    return db.notes.orderBy("createdAt").reverse().toArray();
-  }, [category]);
+export function useNotes(category?: Note['category']) {
+    return useLiveQuery(() => {
+        if (category) {
+            return db.notes.where('category').equals(category).reverse().sortBy('createdAt');
+        }
+        return db.notes.orderBy('createdAt').reverse().toArray();
+    }, [category]);
 }
 
 // Random older notes for review (>24h old, not archived)
 export function useReviewNotes(count = 5) {
-  return useLiveQuery(async () => {
-    const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    const candidates = await db.notes
-      .where("createdAt").below(cutoff)
-      .and((note) => note.category !== "archive")
-      .toArray();
-    const shuffled = candidates.sort(() => Math.random() - 0.5);
-    return shuffled.slice(0, count);
-  }, [count]);
+    return useLiveQuery(async () => {
+        const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        const candidates = await db.notes
+            .where('createdAt')
+            .below(cutoff)
+            .and(note => note.category !== 'archive')
+            .toArray();
+        const shuffled = candidates.sort(() => Math.random() - 0.5);
+        return shuffled.slice(0, count);
+    }, [count]);
 }
 
 // Mutations
-export async function addNote(text: string, category: Note["category"] = "inbox", tags: string[] = []) {
-  const now = new Date();
-  return db.notes.add({ text, category, tags, createdAt: now, updatedAt: now });
+export async function addNote(
+    text: string,
+    category: Note['category'] = 'inbox',
+    tags: string[] = []
+) {
+    const now = new Date();
+    return db.notes.add({ text, category, tags, createdAt: now, updatedAt: now });
 }
 
 export async function updateNoteTags(id: number, tags: string[]) {
-  return db.notes.update(id, { tags, updatedAt: new Date() });
+    return db.notes.update(id, { tags, updatedAt: new Date() });
 }
 
 export async function archiveNote(id: number) {
-  return db.notes.update(id, { category: "archive", updatedAt: new Date() });
+    return db.notes.update(id, { category: 'archive', updatedAt: new Date() });
 }
 
-export async function moveNote(id: number, category: Note["category"]) {
-  return db.notes.update(id, { category, updatedAt: new Date() });
+export async function moveNote(id: number, category: Note['category']) {
+    return db.notes.update(id, { category, updatedAt: new Date() });
 }
 
 export async function deleteNote(id: number) {
-  return db.notes.delete(id);
+    return db.notes.delete(id);
 }
 ```
 
 **`lib/utils.ts`** — Helpers:
+
 ```ts
 export function relativeTime(date: Date): string {
-  const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
-  if (seconds < 60) return "just now";
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  if (days < 30) return `${days}d ago`;
-  const months = Math.floor(days / 30);
-  return `${months}mo ago`;
+    const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
+    if (seconds < 60) return 'just now';
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    if (days < 30) return `${days}d ago`;
+    const months = Math.floor(days / 30);
+    return `${months}mo ago`;
 }
 
 export function truncate(text: string, maxLength = 120): string {
-  if (text.length <= maxLength) return text;
-  return text.slice(0, maxLength).trimEnd() + "...";
+    if (text.length <= maxLength) return text;
+    return text.slice(0, maxLength).trimEnd() + '...';
 }
 ```
 
@@ -257,11 +267,13 @@ export function truncate(text: string, maxLength = 120): string {
 ### Phase 4: All Notes View (`app/notes/page.tsx`)
 
 **`components/CategoryPicker.tsx`**:
+
 - Horizontal scrollable row of pill buttons: Inbox, Ideas, Tasks, Archive
 - Selected pill highlighted (blue), others neutral
 - Props: `categories`, `selected`, `onChange`
 
 **`components/NoteCard.tsx`**:
+
 - Shows truncated text preview + relative time
 - Tap to expand/collapse full text
 - Archive button (visible on all non-archived notes)
@@ -269,6 +281,7 @@ export function truncate(text: string, maxLength = 120): string {
 - `whitespace-pre-wrap` to preserve line breaks
 
 **Page**:
+
 - CategoryPicker at top
 - Scrollable list of NoteCards filtered by selected category
 - Empty state: "No notes here yet."
@@ -278,8 +291,8 @@ export function truncate(text: string, maxLength = 120): string {
 
 - Uses `useReviewNotes(5)` — 5 random notes older than 24h, not archived
 - Each note displayed as a full card with:
-  - Full note text
-  - Two action buttons: **Keep** (do nothing, leave as-is) and **Archive** (move to archive)
+    - Full note text
+    - Two action buttons: **Keep** (do nothing, leave as-is) and **Archive** (move to archive)
 - Archiving removes the card from the list reactively via `useLiveQuery`
 - Empty state: "All caught up — no notes older than 24 hours to review."
 - Loading state while query resolves
@@ -294,6 +307,7 @@ export function truncate(text: string, maxLength = 120): string {
 ### Phase 7: Settings + AI
 
 **`app/settings/page.tsx`**:
+
 - API key input field (password type, with show/hide toggle)
 - Save button — stores key in IndexedDB config table
 - Test button — makes a small Claude API call to validate the key
@@ -301,29 +315,35 @@ export function truncate(text: string, maxLength = 120): string {
 - Clear button to remove key
 
 **`lib/ai.ts`** — Auto-tagging:
+
 ```ts
 export async function autoTag(noteId: number, text: string, apiKey: string): Promise<void> {
-  try {
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-        "content-type": "application/json",
-        "anthropic-dangerous-direct-browser-access": "true",
-      },
-      body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
-        max_tokens: 100,
-        messages: [{ role: "user", content: `Extract 2-4 short lowercase tags from this note. Return ONLY a JSON array of strings, nothing else.\n\nNote: ${text}` }],
-      }),
-    });
-    const data = await response.json();
-    const tags = JSON.parse(data.content[0].text);
-    await updateNoteTags(noteId, tags);
-  } catch {
-    // Silently fail — tags are optional
-  }
+    try {
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+                'x-api-key': apiKey,
+                'anthropic-version': '2023-06-01',
+                'content-type': 'application/json',
+                'anthropic-dangerous-direct-browser-access': 'true',
+            },
+            body: JSON.stringify({
+                model: 'claude-haiku-4-5-20251001',
+                max_tokens: 100,
+                messages: [
+                    {
+                        role: 'user',
+                        content: `Extract 2-4 short lowercase tags from this note. Return ONLY a JSON array of strings, nothing else.\n\nNote: ${text}`,
+                    },
+                ],
+            }),
+        });
+        const data = await response.json();
+        const tags = JSON.parse(data.content[0].text);
+        await updateNoteTags(noteId, tags);
+    } catch {
+        // Silently fail — tags are optional
+    }
 }
 ```
 
@@ -335,22 +355,30 @@ export async function autoTag(noteId: number, text: string, apiKey: string): Pro
 ### Phase 8: Markdown Import/Export (`lib/markdown.ts`)
 
 **Export**:
+
 ```ts
 export function noteToMarkdown(note: Note): string {
-  const frontmatter = [
-    "---",
-    `date: ${note.createdAt.toISOString()}`,
-    `category: ${note.category}`,
-    note.tags.length ? `tags: [${note.tags.join(", ")}]` : null,
-    "---",
-  ].filter(Boolean).join("\n");
-  return `${frontmatter}\n\n${note.text}\n`;
+    const frontmatter = [
+        '---',
+        `date: ${note.createdAt.toISOString()}`,
+        `category: ${note.category}`,
+        note.tags.length ? `tags: [${note.tags.join(', ')}]` : null,
+        '---',
+    ]
+        .filter(Boolean)
+        .join('\n');
+    return `${frontmatter}\n\n${note.text}\n`;
 }
 
 export function noteToFilename(note: Note): string {
-  const date = note.createdAt.toISOString().slice(0, 10);
-  const slug = note.text.slice(0, 40).replace(/[^a-zA-Z0-9 ]/g, "").trim().replace(/\s+/g, "-").toLowerCase();
-  return `${date}-${slug}.md`;
+    const date = note.createdAt.toISOString().slice(0, 10);
+    const slug = note.text
+        .slice(0, 40)
+        .replace(/[^a-zA-Z0-9 ]/g, '')
+        .trim()
+        .replace(/\s+/g, '-')
+        .toLowerCase();
+    return `${date}-${slug}.md`;
 }
 ```
 
@@ -362,22 +390,23 @@ export function noteToFilename(note: Note): string {
 - Compatible with Obsidian — drop files into any vault folder
 
 **Import**:
+
 ```ts
 export function parseMarkdown(filename: string, content: string): Partial<Note> {
-  const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---\n\n?([\s\S]*)$/);
-  if (frontmatterMatch) {
-    const meta = parseFrontmatter(frontmatterMatch[1]);
-    return {
-      text: frontmatterMatch[2].trim(),
-      category: meta.category || "inbox",
-      tags: meta.tags || [],
-      createdAt: meta.date ? new Date(meta.date) : new Date(),
-    };
-  }
-  // No frontmatter — treat whole content as text
-  // Extract inline #tags from body
-  const inlineTags = content.match(/#[a-zA-Z]\w*/g)?.map(t => t.slice(1)) || [];
-  return { text: content.trim(), category: "inbox", tags: inlineTags, createdAt: new Date() };
+    const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---\n\n?([\s\S]*)$/);
+    if (frontmatterMatch) {
+        const meta = parseFrontmatter(frontmatterMatch[1]);
+        return {
+            text: frontmatterMatch[2].trim(),
+            category: meta.category || 'inbox',
+            tags: meta.tags || [],
+            createdAt: meta.date ? new Date(meta.date) : new Date(),
+        };
+    }
+    // No frontmatter — treat whole content as text
+    // Extract inline #tags from body
+    const inlineTags = content.match(/#[a-zA-Z]\w*/g)?.map(t => t.slice(1)) || [];
+    return { text: content.trim(), category: 'inbox', tags: inlineTags, createdAt: new Date() };
 }
 ```
 
@@ -388,6 +417,7 @@ export function parseMarkdown(filename: string, content: string): Partial<Note> 
 - Deduplication: skip notes whose text exactly matches an existing note
 
 **Settings page sections**:
+
 1. AI Configuration (API key)
 2. Export (Download all as .zip)
 3. Import (Select .md files)
