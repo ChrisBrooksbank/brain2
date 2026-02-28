@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { Geist } from 'next/font/google';
+import BottomNav from '@/components/BottomNav';
 import './globals.css';
 
 const geistSans = Geist({
@@ -35,7 +36,7 @@ export default function RootLayout({
                 className={`${geistSans.variable} bg-neutral-950 text-white antialiased h-dvh flex flex-col`}
             >
                 <main className="flex-1 overflow-y-auto">{children}</main>
-                {/* BottomNav renders here — added in Phase 3 task 2 */}
+                <BottomNav />
             </body>
         </html>
     );

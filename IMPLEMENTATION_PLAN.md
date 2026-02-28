@@ -24,7 +24,7 @@
 ### Phase 3: Layout & Navigation
 
 - [x] Create root layout with dark theme (bg-neutral-950 text-white), h-dvh, safe-area padding, bottom nav slot (spec: pwa-offline.md)
-- [ ] Build bottom tab navigation component: 4 tabs (Capture, Notes, Review, Settings), 44px touch targets, active state (spec: pwa-offline.md)
+- [x] Build bottom tab navigation component: 4 tabs (Capture, Notes, Review, Settings), 44px touch targets, active state (spec: pwa-offline.md)
 
 ### Phase 4: Capture View
 
