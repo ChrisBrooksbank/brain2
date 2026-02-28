@@ -69,8 +69,8 @@ describe('NotesView', () => {
     it('renders tag pills for notes with tags', () => {
         mockUseLiveQuery.mockReturnValue(sampleNotes);
         render(<NotesView />);
-        expect(screen.getByText('tag1')).toBeInTheDocument();
-        expect(screen.getByText('tag2')).toBeInTheDocument();
+        expect(screen.getAllByText('tag1').length).toBeGreaterThanOrEqual(1);
+        expect(screen.getAllByText('tag2').length).toBeGreaterThanOrEqual(1);
     });
 
     it('renders relative time for each note', () => {
@@ -157,5 +157,70 @@ describe('NotesView', () => {
         render(<NotesView />);
         expect(screen.getAllByRole('button', { name: /archive/i })).toHaveLength(2);
         expect(screen.getAllByRole('button', { name: /^delete$/i })).toHaveLength(2);
+    });
+
+    it('renders tag filter chips for all unique tags', () => {
+        mockUseLiveQuery.mockReturnValue(sampleNotes);
+        render(<NotesView />);
+        // tag1 and tag2 appear in sampleNotes[0]; should show as filter chips
+        const tag1Buttons = screen.getAllByRole('button', { name: 'tag1' });
+        expect(tag1Buttons.length).toBeGreaterThanOrEqual(1);
+        const tag2Buttons = screen.getAllByRole('button', { name: 'tag2' });
+        expect(tag2Buttons.length).toBeGreaterThanOrEqual(1);
+    });
+
+    it('filters notes when a tag chip is clicked', async () => {
+        const notesWithTags = [
+            { id: 1, text: 'Note with alpha', tags: ['alpha'], createdAt: new Date('2024-01-02'), archived: false },
+            { id: 2, text: 'Note with beta', tags: ['beta'], createdAt: new Date('2024-01-01'), archived: false },
+        ];
+        mockUseLiveQuery.mockReturnValue(notesWithTags);
+        render(<NotesView />);
+        expect(screen.getByText('Note with alpha')).toBeInTheDocument();
+        expect(screen.getByText('Note with beta')).toBeInTheDocument();
+
+        // Click the 'alpha' filter chip (the button with aria-pressed)
+        const alphaChips = screen.getAllByRole('button', { name: 'alpha' });
+        const filterChip = alphaChips.find((b) => b.hasAttribute('aria-pressed'));
+        await act(async () => {
+            fireEvent.click(filterChip!);
+        });
+
+        expect(screen.getByText('Note with alpha')).toBeInTheDocument();
+        expect(screen.queryByText('Note with beta')).not.toBeInTheDocument();
+    });
+
+    it('clears filter when active tag chip is clicked again', async () => {
+        const notesWithTags = [
+            { id: 1, text: 'Note with alpha', tags: ['alpha'], createdAt: new Date('2024-01-02'), archived: false },
+            { id: 2, text: 'Note with beta', tags: ['beta'], createdAt: new Date('2024-01-01'), archived: false },
+        ];
+        mockUseLiveQuery.mockReturnValue(notesWithTags);
+        render(<NotesView />);
+
+        const alphaChips = screen.getAllByRole('button', { name: 'alpha' });
+        const filterChip = alphaChips.find((b) => b.hasAttribute('aria-pressed'));
+        await act(async () => {
+            fireEvent.click(filterChip!);
+        });
+        expect(screen.queryByText('Note with beta')).not.toBeInTheDocument();
+
+        // Click again to clear
+        await act(async () => {
+            fireEvent.click(filterChip!);
+        });
+        expect(screen.getByText('Note with alpha')).toBeInTheDocument();
+        expect(screen.getByText('Note with beta')).toBeInTheDocument();
+    });
+
+    it('does not render filter chips when notes have no tags', () => {
+        const noTagNotes = [
+            { id: 1, text: 'Note one', tags: [], createdAt: new Date('2024-01-01'), archived: false },
+        ];
+        mockUseLiveQuery.mockReturnValue(noTagNotes);
+        render(<NotesView />);
+        // No filter chips section should exist (no aria-pressed buttons)
+        const pressedButtons = document.querySelectorAll('[aria-pressed]');
+        expect(pressedButtons).toHaveLength(0);
     });
 });

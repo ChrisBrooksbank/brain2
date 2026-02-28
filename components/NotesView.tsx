@@ -12,6 +12,7 @@ export default function NotesView() {
     );
     const [expandedId, setExpandedId] = useState<number | null>(null);
     const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
+    const [selectedTag, setSelectedTag] = useState<string | null>(null);
 
     if (notes === undefined) {
         return <p className="p-4 text-neutral-500">Loading…</p>;
@@ -21,9 +22,31 @@ export default function NotesView() {
         return <p className="p-4 text-neutral-500">No notes yet.</p>;
     }
 
+    const allTags = Array.from(new Set(notes.flatMap((n) => n.tags))).sort();
+    const filteredNotes = selectedTag ? notes.filter((n) => n.tags.includes(selectedTag)) : notes;
+
     return (
-        <ul className="flex flex-col gap-2 p-4">
-            {notes.map((note) => {
+        <div>
+            {allTags.length > 0 && (
+                <div className="flex flex-wrap gap-2 px-4 pt-4">
+                    {allTags.map((tag) => (
+                        <button
+                            key={tag}
+                            onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
+                            aria-pressed={selectedTag === tag}
+                            className={`min-h-[44px] rounded-full px-3 py-1 text-sm transition-colors ${
+                                selectedTag === tag
+                                    ? 'bg-blue-600 text-white'
+                                    : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
+                            }`}
+                        >
+                            {tag}
+                        </button>
+                    ))}
+                </div>
+            )}
+            <ul className="flex flex-col gap-2 p-4">
+            {filteredNotes.map((note) => {
                 const isExpanded = expandedId === note.id;
                 const isConfirming = confirmDeleteId === note.id;
                 return (
@@ -88,5 +111,6 @@ export default function NotesView() {
                 );
             })}
         </ul>
+        </div>
     );
 }
