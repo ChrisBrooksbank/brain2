@@ -36,6 +36,7 @@ export default function SettingsView() {
     const [saved, setSaved] = useState(false);
     const [testStatus, setTestStatus] = useState<TestStatus>('no-key');
     const [exporting, setExporting] = useState(false);
+    const [downloadingBackup, setDownloadingBackup] = useState(false);
     const [importing, setImporting] = useState(false);
     const [importResult, setImportResult] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -73,6 +74,19 @@ export default function SettingsView() {
             downloadBlob(blob, `brain2-export-${date}.zip`);
         } finally {
             setExporting(false);
+        }
+    }, []);
+
+    const handleDownloadBackup = useCallback(async () => {
+        setDownloadingBackup(true);
+        try {
+            const notes = await db.notes.toArray();
+            const json = JSON.stringify(notes, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const date = new Date().toISOString().slice(0, 10);
+            downloadBlob(blob, `brain2-backup-${date}.json`);
+        } finally {
+            setDownloadingBackup(false);
         }
     }, []);
 
@@ -210,6 +224,14 @@ export default function SettingsView() {
                     className="min-h-[44px] rounded-xl bg-neutral-800 text-neutral-300 text-sm px-4 transition-opacity disabled:opacity-30 text-left"
                 >
                     {exporting ? 'Exporting…' : 'Export all notes (.zip)'}
+                </button>
+                <button
+                    onClick={handleDownloadBackup}
+                    disabled={downloadingBackup}
+                    aria-label="Download backup as JSON"
+                    className="min-h-[44px] rounded-xl bg-neutral-800 text-neutral-300 text-sm px-4 transition-opacity disabled:opacity-30 text-left"
+                >
+                    {downloadingBackup ? 'Downloading…' : 'Download backup (.json)'}
                 </button>
                 <input
                     ref={fileInputRef}

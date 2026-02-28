@@ -254,6 +254,27 @@ describe('SettingsView', () => {
         });
     });
 
+    it('renders Download backup button', () => {
+        render(<SettingsView />);
+        expect(screen.getByRole('button', { name: /download backup/i })).toBeInTheDocument();
+    });
+
+    it('Download backup button fetches all notes and calls downloadBlob with JSON filename', async () => {
+        const fakeNotes = [
+            { id: 1, text: 'hello', tags: ['a'], createdAt: new Date('2024-01-01'), archived: false },
+        ];
+        mockNotesToArray.mockResolvedValue(fakeNotes);
+        render(<SettingsView />);
+        fireEvent.click(screen.getByRole('button', { name: /download backup/i }));
+        await waitFor(() => {
+            expect(mockNotesToArray).toHaveBeenCalled();
+            expect(mockDownloadBlob).toHaveBeenCalledWith(
+                expect.any(Blob),
+                expect.stringMatching(/brain2-backup-.*\.json/),
+            );
+        });
+    });
+
     it('skips duplicate notes by exact text match', async () => {
         mockNotesToArray.mockResolvedValue([
             { id: 1, text: 'Imported note text', tags: [], createdAt: new Date(), archived: false },

@@ -58,7 +58,7 @@
 ### Phase 10: Offline & Backups
 
 - [x] Implement daily auto-backups: on app open, save rolling 7-day IndexedDB snapshots to Dexie (spec: pwa-offline.md)
-- [ ] Add manual "Download Backup" button in settings to export all notes as JSON file (spec: pwa-offline.md)
+- [x] Add manual "Download Backup" button in settings to export all notes as JSON file (spec: pwa-offline.md)
 
 ### Phase 11: Polish
 
