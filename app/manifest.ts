@@ -1,0 +1,20 @@
+import type { MetadataRoute } from 'next';
+
+export default function manifest(): MetadataRoute.Manifest {
+    return {
+        name: 'Brain2',
+        short_name: 'Brain2',
+        description: 'Quick capture notes with AI tagging',
+        start_url: '/',
+        display: 'standalone',
+        background_color: '#0a0a0a',
+        theme_color: '#0a0a0a',
+        icons: [
+            {
+                src: '/favicon.ico',
+                sizes: 'any',
+                type: 'image/x-icon',
+            },
+        ],
+    };
+}
