@@ -6,6 +6,10 @@ const mockGetConfig = vi.fn();
 const mockSetConfig = vi.fn();
 const mockDelete = vi.fn();
 const mockFetch = vi.fn();
+const mockNotesToArray = vi.fn();
+
+const mockExportNotesAsZip = vi.fn();
+const mockDownloadBlob = vi.fn();
 
 vi.mock('@/lib/db', () => ({
     getConfig: (...args: unknown[]) => mockGetConfig(...args),
@@ -14,7 +18,15 @@ vi.mock('@/lib/db', () => ({
         config: {
             delete: (...args: unknown[]) => mockDelete(...args),
         },
+        notes: {
+            toArray: (...args: unknown[]) => mockNotesToArray(...args),
+        },
     },
+}));
+
+vi.mock('@/lib/export', () => ({
+    exportNotesAsZip: (...args: unknown[]) => mockExportNotesAsZip(...args),
+    downloadBlob: (...args: unknown[]) => mockDownloadBlob(...args),
 }));
 
 beforeEach(() => {
@@ -22,6 +34,9 @@ beforeEach(() => {
     mockGetConfig.mockResolvedValue(undefined);
     mockSetConfig.mockResolvedValue(undefined);
     mockDelete.mockResolvedValue(undefined);
+    mockNotesToArray.mockResolvedValue([]);
+    mockExportNotesAsZip.mockResolvedValue(new Blob());
+    mockDownloadBlob.mockReturnValue(undefined);
     vi.stubGlobal('fetch', mockFetch);
 });
 
@@ -189,6 +204,23 @@ describe('SettingsView', () => {
         fireEvent.click(screen.getByRole('button', { name: /clear api key/i }));
         await waitFor(() => {
             expect(screen.getByRole('status')).toHaveTextContent('No key set');
+        });
+    });
+
+    it('renders Export all notes button', () => {
+        render(<SettingsView />);
+        expect(screen.getByRole('button', { name: /export all notes/i })).toBeInTheDocument();
+    });
+
+    it('Export button calls exportNotesAsZip and downloadBlob', async () => {
+        const fakeBlob = new Blob(['zip content']);
+        mockExportNotesAsZip.mockResolvedValue(fakeBlob);
+        render(<SettingsView />);
+        fireEvent.click(screen.getByRole('button', { name: /export all notes/i }));
+        await waitFor(() => {
+            expect(mockNotesToArray).toHaveBeenCalled();
+            expect(mockExportNotesAsZip).toHaveBeenCalledWith([]);
+            expect(mockDownloadBlob).toHaveBeenCalledWith(fakeBlob, expect.stringMatching(/brain2-export-.*\.zip/));
         });
     });
 });

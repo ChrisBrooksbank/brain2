@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { getConfig, setConfig, db } from '@/lib/db';
+import { exportNotesAsZip, downloadBlob } from '@/lib/export';
 
 const API_KEY_CONFIG = 'anthropic_api_key';
 
@@ -34,6 +35,7 @@ export default function SettingsView() {
     const [showKey, setShowKey] = useState(false);
     const [saved, setSaved] = useState(false);
     const [testStatus, setTestStatus] = useState<TestStatus>('no-key');
+    const [exporting, setExporting] = useState(false);
 
     useEffect(() => {
         getConfig(API_KEY_CONFIG).then((val) => {
@@ -57,6 +59,18 @@ export default function SettingsView() {
         await db.config.delete(API_KEY_CONFIG);
         setApiKey('');
         setTestStatus('no-key');
+    }, []);
+
+    const handleExport = useCallback(async () => {
+        setExporting(true);
+        try {
+            const notes = await db.notes.toArray();
+            const blob = await exportNotesAsZip(notes);
+            const date = new Date().toISOString().slice(0, 10);
+            downloadBlob(blob, `brain2-export-${date}.zip`);
+        } finally {
+            setExporting(false);
+        }
     }, []);
 
     const handleTest = useCallback(async () => {
@@ -151,6 +165,19 @@ export default function SettingsView() {
                         Saved
                     </span>
                 )}
+            </section>
+            <section className="flex flex-col gap-3">
+                <h2 className="text-sm font-medium text-neutral-400 uppercase tracking-wide">
+                    Data
+                </h2>
+                <button
+                    onClick={handleExport}
+                    disabled={exporting}
+                    aria-label="Export all notes as ZIP"
+                    className="min-h-[44px] rounded-xl bg-neutral-800 text-neutral-300 text-sm px-4 transition-opacity disabled:opacity-30 text-left"
+                >
+                    {exporting ? 'Exporting…' : 'Export all notes (.zip)'}
+                </button>
             </section>
         </div>
     );
