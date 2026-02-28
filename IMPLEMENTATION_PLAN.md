@@ -46,7 +46,7 @@
 
 ### Phase 8: Settings & AI
 
-- [ ] Build settings view: API key input (password type, show/hide toggle), Save and Clear buttons, persist key in Dexie Config (spec: settings-ai.md)
+- [x] Build settings view: API key input (password type, show/hide toggle), Save and Clear buttons, persist key in Dexie Config (spec: settings-ai.md)
 - [ ] Add AI status indicator and Test button to settings: validates key against Claude API, shows Connected/No key/Invalid (spec: settings-ai.md)
 - [ ] Implement fire-and-forget auto-tagging: after note save, call Claude Haiku to generate 2-4 lowercase tags, silently update note (spec: settings-ai.md)
 
