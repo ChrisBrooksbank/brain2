@@ -6,8 +6,14 @@ vi.mock('@/lib/db', () => ({
     addNote: vi.fn().mockResolvedValue(1),
 }));
 
+vi.mock('@/lib/ai', () => ({
+    autoTagNote: vi.fn().mockResolvedValue(undefined),
+}));
+
 import { addNote } from '@/lib/db';
+import { autoTagNote } from '@/lib/ai';
 const mockAddNote = vi.mocked(addNote);
+const mockAutoTagNote = vi.mocked(autoTagNote);
 
 function makeMockRecognition() {
     const handlers: Record<string, ((e: unknown) => void) | null> = {
@@ -55,6 +61,7 @@ function makeMockRecognition() {
 
 beforeEach(() => {
     mockAddNote.mockClear();
+    mockAutoTagNote.mockClear();
     // Remove any SpeechRecognition mock between tests
     delete (window as unknown as Record<string, unknown>).SpeechRecognition;
     delete (window as unknown as Record<string, unknown>).webkitSpeechRecognition;
@@ -92,6 +99,16 @@ describe('CaptureView', () => {
         });
         expect(mockAddNote).toHaveBeenCalledOnce();
         expect(mockAddNote).toHaveBeenCalledWith('my note');
+    });
+
+    it('calls autoTagNote with the saved note id and text after save', async () => {
+        mockAddNote.mockResolvedValue(42);
+        render(<CaptureView />);
+        fireEvent.change(screen.getByRole('textbox'), { target: { value: 'tag this note' } });
+        await act(async () => {
+            fireEvent.click(screen.getByRole('button', { name: /save/i }));
+        });
+        await waitFor(() => expect(mockAutoTagNote).toHaveBeenCalledWith(42, 'tag this note'));
     });
 
     it('clears textarea after save', async () => {

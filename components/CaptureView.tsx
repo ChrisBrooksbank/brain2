@@ -2,6 +2,7 @@
 
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { addNote } from '@/lib/db';
+import { autoTagNote } from '@/lib/ai';
 
 export default function CaptureView() {
     const [text, setText] = useState('');
@@ -17,7 +18,8 @@ export default function CaptureView() {
     const handleSave = useCallback(async () => {
         const trimmed = text.trim();
         if (!trimmed) return;
-        await addNote(trimmed);
+        const id = await addNote(trimmed);
+        void autoTagNote(id, trimmed);
         setText('');
         setSaved(true);
         setTimeout(() => setSaved(false), 1200);
