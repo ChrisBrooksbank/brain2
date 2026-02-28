@@ -36,7 +36,7 @@ export default function ReviewView() {
     }
 
     return (
-        <ul className="flex flex-col gap-2 p-4">
+        <ul className="flex flex-col gap-2 p-4 animate-page-enter">
             {visibleNotes.map((note) => (
                 <li key={note.id} className="rounded-xl bg-neutral-900 p-4">
                     <p className="whitespace-pre-wrap break-words">{note.text}</p>
@@ -55,13 +55,13 @@ export default function ReviewView() {
                     <div className="mt-3 flex gap-2">
                         <button
                             onClick={() => setKeptIds((prev) => [...prev, note.id])}
-                            className="min-h-[44px] flex-1 rounded-lg bg-neutral-800 text-sm text-neutral-300 transition-colors hover:bg-neutral-700"
+                            className="min-h-[44px] flex-1 rounded-lg bg-neutral-800 text-sm text-neutral-300 transition-colors hover:bg-neutral-700 active:opacity-75"
                         >
                             Keep
                         </button>
                         <button
                             onClick={() => { navigator.vibrate?.(10); archiveNote(note.id); }}
-                            className="min-h-[44px] flex-1 rounded-lg bg-neutral-800 text-sm text-neutral-300 transition-colors hover:bg-neutral-700"
+                            className="min-h-[44px] flex-1 rounded-lg bg-neutral-800 text-sm text-neutral-300 transition-colors hover:bg-neutral-700 active:opacity-75"
                         >
                             Archive
                         </button>

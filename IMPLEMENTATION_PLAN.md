@@ -63,7 +63,7 @@
 ### Phase 11: Polish
 
 - [x] Add haptic feedback via navigator.vibrate on note save and archive actions (spec: pwa-offline.md)
-- [ ] Final mobile polish: verify 44px touch targets across all views, smooth scroll, page transition animations (spec: pwa-offline.md)
+- [x] Final mobile polish: verify 44px touch targets across all views, smooth scroll, page transition animations (spec: pwa-offline.md)
 
 ## Completed
 

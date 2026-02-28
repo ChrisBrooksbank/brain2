@@ -37,7 +37,7 @@ export default function RootLayout({
                 className={`${geistSans.variable} bg-neutral-950 text-white antialiased h-dvh flex flex-col`}
             >
                 <BackupProvider />
-                <main className="flex-1 overflow-y-auto">{children}</main>
+                <main className="flex-1 overflow-y-auto scroll-smooth">{children}</main>
                 <BottomNav />
             </body>
         </html>

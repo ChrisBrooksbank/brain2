@@ -73,7 +73,7 @@ export default function CaptureView() {
     const isEmpty = text.trim().length === 0;
 
     return (
-        <div className="flex h-full flex-col p-4 gap-3">
+        <div className="flex h-full flex-col p-4 gap-3 animate-page-enter">
             <textarea
                 ref={textareaRef}
                 value={text}
@@ -88,14 +88,14 @@ export default function CaptureView() {
                     onClick={handleMic}
                     aria-label={isListening ? 'Stop recording' : 'Start recording'}
                     aria-pressed={isListening}
-                    className={`min-h-[44px] min-w-[44px] rounded-xl text-xl transition-colors ${isListening ? 'bg-red-500 text-white' : 'bg-neutral-800 text-neutral-300'}`}
+                    className={`min-h-[44px] min-w-[44px] rounded-xl text-xl transition-colors active:opacity-75 ${isListening ? 'bg-red-500 text-white' : 'bg-neutral-800 text-neutral-300'}`}
                 >
                     🎙
                 </button>
                 <button
                     onClick={handleSave}
                     disabled={isEmpty}
-                    className="flex-1 min-h-[44px] rounded-xl bg-white text-black text-base font-semibold transition-opacity disabled:opacity-30"
+                    className="flex-1 min-h-[44px] rounded-xl bg-white text-black text-base font-semibold transition-opacity disabled:opacity-30 active:opacity-75"
                 >
                     Save
                 </button>

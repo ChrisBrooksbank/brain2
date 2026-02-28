@@ -36,7 +36,7 @@ export default function SearchView() {
     const allNotes = useLiveQuery(() => db.notes.orderBy('createdAt').reverse().toArray(), []);
 
     return (
-        <div>
+        <div className="animate-page-enter">
             <div className="p-4">
                 <input
                     type="search"
@@ -45,7 +45,7 @@ export default function SearchView() {
                     onChange={(e) => setInput(e.target.value)}
                     autoFocus
                     aria-label="Search notes"
-                    className="w-full rounded-xl bg-neutral-900 px-4 py-3 text-white placeholder-neutral-500 outline-none focus:ring-2 focus:ring-blue-600"
+                    className="w-full min-h-[44px] rounded-xl bg-neutral-900 px-4 py-3 text-white placeholder-neutral-500 outline-none focus:ring-2 focus:ring-blue-600"
                 />
             </div>
             {allNotes === undefined && (

@@ -26,7 +26,7 @@ export default function NotesView() {
     const filteredNotes = selectedTag ? notes.filter((n) => n.tags.includes(selectedTag)) : notes;
 
     return (
-        <div>
+        <div className="animate-page-enter">
             {allTags.length > 0 && (
                 <div className="flex flex-wrap gap-2 px-4 pt-4">
                     {allTags.map((tag) => (
@@ -34,7 +34,7 @@ export default function NotesView() {
                             key={tag}
                             onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
                             aria-pressed={selectedTag === tag}
-                            className={`min-h-[44px] rounded-full px-3 py-1 text-sm transition-colors ${
+                            className={`min-h-[44px] rounded-full px-3 py-1 text-sm transition-colors active:opacity-75 ${
                                 selectedTag === tag
                                     ? 'bg-blue-600 text-white'
                                     : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
@@ -53,7 +53,7 @@ export default function NotesView() {
                     <li key={note.id} className="rounded-xl bg-neutral-900 p-4">
                         <button
                             onClick={() => setExpandedId(isExpanded ? null : note.id)}
-                            className="w-full text-left"
+                            className="w-full text-left min-h-[44px] active:opacity-75 transition-opacity"
                             aria-expanded={isExpanded}
                             aria-label={isExpanded ? 'Collapse note' : 'Expand note'}
                         >
@@ -79,7 +79,7 @@ export default function NotesView() {
                         <div className="mt-3 flex gap-2">
                             <button
                                 onClick={() => { navigator.vibrate?.(10); archiveNote(note.id); }}
-                                className="min-h-[44px] flex-1 rounded-lg bg-neutral-800 text-sm text-neutral-300 transition-colors hover:bg-neutral-700"
+                                className="min-h-[44px] flex-1 rounded-lg bg-neutral-800 text-sm text-neutral-300 transition-colors hover:bg-neutral-700 active:opacity-75"
                             >
                                 Archive
                             </button>
@@ -87,13 +87,13 @@ export default function NotesView() {
                                 <>
                                     <button
                                         onClick={() => deleteNote(note.id)}
-                                        className="min-h-[44px] flex-1 rounded-lg bg-red-600 text-sm text-white transition-colors hover:bg-red-500"
+                                        className="min-h-[44px] flex-1 rounded-lg bg-red-600 text-sm text-white transition-colors hover:bg-red-500 active:opacity-75"
                                     >
                                         Confirm Delete
                                     </button>
                                     <button
                                         onClick={() => setConfirmDeleteId(null)}
-                                        className="min-h-[44px] flex-1 rounded-lg bg-neutral-800 text-sm text-neutral-300 transition-colors hover:bg-neutral-700"
+                                        className="min-h-[44px] flex-1 rounded-lg bg-neutral-800 text-sm text-neutral-300 transition-colors hover:bg-neutral-700 active:opacity-75"
                                     >
                                         Cancel
                                     </button>
@@ -101,7 +101,7 @@ export default function NotesView() {
                             ) : (
                                 <button
                                     onClick={() => setConfirmDeleteId(note.id)}
-                                    className="min-h-[44px] flex-1 rounded-lg bg-neutral-800 text-sm text-neutral-300 transition-colors hover:bg-neutral-700"
+                                    className="min-h-[44px] flex-1 rounded-lg bg-neutral-800 text-sm text-neutral-300 transition-colors hover:bg-neutral-700 active:opacity-75"
                                 >
                                     Delete
                                 </button>

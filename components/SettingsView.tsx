@@ -145,7 +145,7 @@ export default function SettingsView() {
               : 'text-neutral-500';
 
     return (
-        <div className="p-4 flex flex-col gap-6">
+        <div className="p-4 flex flex-col gap-6 animate-page-enter">
             <h1 className="text-xl font-semibold">Settings</h1>
             <section className="flex flex-col gap-3">
                 <h2 className="text-sm font-medium text-neutral-400 uppercase tracking-wide">
@@ -177,7 +177,7 @@ export default function SettingsView() {
                         onClick={() => setShowKey((s) => !s)}
                         aria-label={showKey ? 'Hide API key' : 'Show API key'}
                         aria-pressed={showKey}
-                        className="min-h-[44px] min-w-[44px] rounded-xl bg-neutral-800 text-neutral-300"
+                        className="min-h-[44px] min-w-[44px] rounded-xl bg-neutral-800 text-neutral-300 active:opacity-75"
                     >
                         {showKey ? '🙈' : '👁'}
                     </button>
@@ -186,7 +186,7 @@ export default function SettingsView() {
                     <button
                         onClick={handleSave}
                         disabled={!apiKey.trim()}
-                        className="flex-1 min-h-[44px] rounded-xl bg-white text-black text-base font-semibold transition-opacity disabled:opacity-30"
+                        className="flex-1 min-h-[44px] rounded-xl bg-white text-black text-base font-semibold transition-opacity disabled:opacity-30 active:opacity-75"
                     >
                         Save
                     </button>
@@ -194,7 +194,7 @@ export default function SettingsView() {
                         onClick={handleTest}
                         disabled={!apiKey.trim() || testStatus === 'testing'}
                         aria-label="Test API key"
-                        className="min-h-[44px] rounded-xl bg-neutral-800 text-neutral-300 text-sm px-4 transition-opacity disabled:opacity-30"
+                        className="min-h-[44px] rounded-xl bg-neutral-800 text-neutral-300 text-sm px-4 transition-opacity disabled:opacity-30 active:opacity-75"
                     >
                         Test
                     </button>
@@ -202,7 +202,7 @@ export default function SettingsView() {
                         onClick={handleClear}
                         disabled={!apiKey}
                         aria-label="Clear API key"
-                        className="min-h-[44px] rounded-xl bg-neutral-800 text-neutral-300 text-sm px-4 transition-opacity disabled:opacity-30"
+                        className="min-h-[44px] rounded-xl bg-neutral-800 text-neutral-300 text-sm px-4 transition-opacity disabled:opacity-30 active:opacity-75"
                     >
                         Clear
                     </button>

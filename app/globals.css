@@ -7,3 +7,18 @@
 body {
     font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }
+
+@keyframes page-enter {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@utility animate-page-enter {
+    animation: page-enter 0.2s ease-out;
+}
