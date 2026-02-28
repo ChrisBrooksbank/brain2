@@ -12,6 +12,7 @@ const geistSans = Geist({
 export const metadata: Metadata = {
     title: 'Brain2',
     description: 'Quick capture notes with AI tagging',
+    manifest: '/manifest.webmanifest',
     appleWebApp: {
         capable: true,
         statusBarStyle: 'black-translucent',
