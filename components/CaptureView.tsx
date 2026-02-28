@@ -8,11 +8,20 @@ export default function CaptureView() {
     const [text, setText] = useState('');
     const [saved, setSaved] = useState(false);
     const [isListening, setIsListening] = useState(false);
+    const [micError, setMicError] = useState('');
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const recognitionRef = useRef<SpeechRecognition | null>(null);
 
     useEffect(() => {
         textareaRef.current?.focus();
+    }, []);
+
+    useEffect(() => {
+        return () => {
+            const rec = recognitionRef.current;
+            recognitionRef.current = null;
+            rec?.stop();
+        };
     }, []);
 
     const handleSave = useCallback(async () => {
@@ -39,35 +48,74 @@ export default function CaptureView() {
 
     const handleMic = useCallback(() => {
         const SpeechRecognition = window.SpeechRecognition ?? window.webkitSpeechRecognition;
-        if (!SpeechRecognition) return;
+        if (!SpeechRecognition) {
+            setMicError('Speech API not supported');
+            return;
+        }
 
         if (isListening) {
-            recognitionRef.current?.stop();
+            const rec = recognitionRef.current;
+            recognitionRef.current = null;
+            rec?.stop();
             setIsListening(false);
             return;
         }
+
+        setMicError('');
 
         const recognition = new SpeechRecognition();
         recognition.lang = 'en-US';
         recognition.interimResults = false;
         recognition.maxAlternatives = 1;
 
+        recognition.onaudiostart = () => {
+            setMicError('Listening...');
+        };
+
         recognition.onresult = (event: SpeechRecognitionEvent) => {
-            const transcript = event.results[0][0].transcript;
-            setText((prev) => (prev ? prev + ' ' + transcript : transcript));
+            let finalTranscript = '';
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                if (event.results[i].isFinal) {
+                    finalTranscript += event.results[i][0].transcript;
+                }
+            }
+            if (finalTranscript) {
+                setText((prev) => (prev ? prev + ' ' + finalTranscript : finalTranscript));
+                setMicError(`Got: "${finalTranscript}"`);
+            }
         };
 
         recognition.onend = () => {
+            // Auto-restart if still supposed to be listening
+            if (recognitionRef.current === recognition) {
+                try {
+                    recognition.start();
+                    return;
+                } catch {
+                    // fall through to stop
+                }
+            }
             setIsListening(false);
         };
 
-        recognition.onerror = () => {
+        recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+            if (event.error === 'no-speech') {
+                // Ignore no-speech, onend will auto-restart
+                return;
+            }
+            setMicError(`Mic error: ${event.error}`);
+            recognitionRef.current = null;
             setIsListening(false);
         };
 
-        recognitionRef.current = recognition;
-        recognition.start();
-        setIsListening(true);
+        try {
+            recognitionRef.current = recognition;
+            recognition.start();
+            setIsListening(true);
+        } catch (e) {
+            recognitionRef.current = null;
+            setMicError(`Start failed: ${e}`);
+        }
     }, [isListening]);
 
     const isEmpty = text.trim().length === 0;
@@ -103,6 +151,9 @@ export default function CaptureView() {
                     <span className="text-sm text-neutral-400 animate-pulse" role="status">
                         Saved
                     </span>
+                )}
+                {micError && (
+                    <span className="text-sm text-red-400">{micError}</span>
                 )}
             </div>
         </div>
