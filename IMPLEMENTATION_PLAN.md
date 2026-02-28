@@ -38,7 +38,7 @@
 
 ### Phase 6: Review View
 
-- [ ] Build review view: fetch 5 random notes older than 24h, display cards with Keep/Archive buttons, reactive removal, empty state (spec: review.md)
+- [x] Build review view: fetch 5 random notes older than 24h, display cards with Keep/Archive buttons, reactive removal, empty state (spec: review.md)
 
 ### Phase 7: Search View
 
