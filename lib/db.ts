@@ -13,15 +13,25 @@ export interface Config {
     value: string;
 }
 
+export interface Backup {
+    id: number;
+    createdAt: Date;
+    notes: Note[];
+}
+
 class Brain2DB extends Dexie {
     notes!: EntityTable<Note, 'id'>;
     config!: EntityTable<Config, 'key'>;
+    backups!: EntityTable<Backup, 'id'>;
 
     constructor() {
         super('brain2');
         this.version(1).stores({
             notes: '++id, text, *tags, createdAt, archived',
             config: 'key',
+        });
+        this.version(2).stores({
+            backups: '++id, createdAt',
         });
     }
 }
