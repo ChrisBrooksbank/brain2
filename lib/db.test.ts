@@ -1,7 +1,7 @@
 import 'fake-indexeddb/auto';
 import { describe, it, expect, beforeEach } from 'vitest';
 import Dexie, { type EntityTable } from 'dexie';
-import { type Note, type Config } from './db';
+import { db, type Note, type Config, addNote, updateNote, archiveNote, deleteNote, getConfig, setConfig } from './db';
 
 // Create a fresh DB instance per test file to avoid shared state issues
 class TestDB extends Dexie {
@@ -124,5 +124,59 @@ describe('db.config', () => {
         await testDb.config.delete('toRemove');
         const entry = await testDb.config.get('toRemove');
         expect(entry).toBeUndefined();
+    });
+});
+
+describe('mutation helpers', () => {
+    beforeEach(async () => {
+        await db.notes.clear();
+        await db.config.clear();
+    });
+
+    it('addNote creates a note with default fields', async () => {
+        const id = await addNote('test note');
+        const note = await db.notes.get(id);
+        expect(note).toBeDefined();
+        expect(note!.text).toBe('test note');
+        expect(note!.tags).toEqual([]);
+        expect(note!.archived).toBe(false);
+        expect(note!.createdAt).toBeInstanceOf(Date);
+    });
+
+    it('updateNote updates text and tags', async () => {
+        const id = await addNote('original');
+        await updateNote(id, { text: 'updated', tags: ['foo'] });
+        const note = await db.notes.get(id);
+        expect(note!.text).toBe('updated');
+        expect(note!.tags).toEqual(['foo']);
+    });
+
+    it('archiveNote sets archived to true', async () => {
+        const id = await addNote('to archive');
+        await archiveNote(id);
+        const note = await db.notes.get(id);
+        expect(note!.archived).toBe(true);
+    });
+
+    it('deleteNote removes the note', async () => {
+        const id = await addNote('to delete');
+        await deleteNote(id);
+        const note = await db.notes.get(id);
+        expect(note).toBeUndefined();
+    });
+
+    it('setConfig stores a value and getConfig retrieves it', async () => {
+        await setConfig('apiKey', 'sk-123');
+        expect(await getConfig('apiKey')).toBe('sk-123');
+    });
+
+    it('setConfig overwrites existing value', async () => {
+        await setConfig('theme', 'dark');
+        await setConfig('theme', 'light');
+        expect(await getConfig('theme')).toBe('light');
+    });
+
+    it('getConfig returns undefined for missing key', async () => {
+        expect(await getConfig('missing')).toBeUndefined();
     });
 });
