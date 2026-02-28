@@ -27,6 +27,7 @@ const sampleNotes = [
 
 beforeEach(() => {
     vi.clearAllMocks();
+    Object.defineProperty(navigator, 'vibrate', { value: vi.fn(), configurable: true, writable: true });
 });
 
 describe('ReviewView', () => {
@@ -83,6 +84,16 @@ describe('ReviewView', () => {
         });
         expect(mockArchiveNote).toHaveBeenCalledOnce();
         expect(mockArchiveNote).toHaveBeenCalledWith(1);
+    });
+
+    it('triggers haptic feedback when Archive is clicked', async () => {
+        mockUseLiveQuery.mockReturnValue([sampleNotes[0]]);
+        render(<ReviewView />);
+
+        await act(async () => {
+            fireEvent.click(screen.getByRole('button', { name: /archive/i }));
+        });
+        expect(navigator.vibrate).toHaveBeenCalledWith(10);
     });
 
     it('shows empty state after all notes are kept', async () => {

@@ -44,6 +44,7 @@ const sampleNotes = [
 
 beforeEach(() => {
     vi.clearAllMocks();
+    Object.defineProperty(navigator, 'vibrate', { value: vi.fn(), configurable: true, writable: true });
 });
 
 describe('NotesView', () => {
@@ -111,6 +112,16 @@ describe('NotesView', () => {
         });
         expect(mockArchiveNote).toHaveBeenCalledOnce();
         expect(mockArchiveNote).toHaveBeenCalledWith(1);
+    });
+
+    it('triggers haptic feedback when Archive is clicked', async () => {
+        mockUseLiveQuery.mockReturnValue(sampleNotes);
+        render(<NotesView />);
+        const archiveBtns = screen.getAllByRole('button', { name: /archive/i });
+        await act(async () => {
+            fireEvent.click(archiveBtns[0]);
+        });
+        expect(navigator.vibrate).toHaveBeenCalledWith(10);
     });
 
     it('shows Confirm Delete and Cancel buttons after clicking Delete', async () => {

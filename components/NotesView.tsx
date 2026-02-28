@@ -78,7 +78,7 @@ export default function NotesView() {
                         )}
                         <div className="mt-3 flex gap-2">
                             <button
-                                onClick={() => archiveNote(note.id)}
+                                onClick={() => { navigator.vibrate?.(10); archiveNote(note.id); }}
                                 className="min-h-[44px] flex-1 rounded-lg bg-neutral-800 text-sm text-neutral-300 transition-colors hover:bg-neutral-700"
                             >
                                 Archive

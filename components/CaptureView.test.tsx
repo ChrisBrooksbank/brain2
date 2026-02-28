@@ -65,6 +65,8 @@ beforeEach(() => {
     // Remove any SpeechRecognition mock between tests
     delete (window as unknown as Record<string, unknown>).SpeechRecognition;
     delete (window as unknown as Record<string, unknown>).webkitSpeechRecognition;
+    // Mock navigator.vibrate
+    Object.defineProperty(navigator, 'vibrate', { value: vi.fn(), configurable: true, writable: true });
 });
 
 describe('CaptureView', () => {
@@ -128,6 +130,15 @@ describe('CaptureView', () => {
             fireEvent.click(screen.getByRole('button', { name: /save/i }));
         });
         await waitFor(() => expect(screen.getByRole('status')).toBeInTheDocument());
+    });
+
+    it('triggers haptic feedback on save', async () => {
+        render(<CaptureView />);
+        fireEvent.change(screen.getByRole('textbox'), { target: { value: 'my note' } });
+        await act(async () => {
+            fireEvent.click(screen.getByRole('button', { name: /save/i }));
+        });
+        expect(navigator.vibrate).toHaveBeenCalledWith(10);
     });
 
     it('saves on Ctrl+Enter', async () => {

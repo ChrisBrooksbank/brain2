@@ -20,6 +20,7 @@ export default function CaptureView() {
         if (!trimmed) return;
         const id = await addNote(trimmed);
         void autoTagNote(id, trimmed);
+        navigator.vibrate?.(10);
         setText('');
         setSaved(true);
         setTimeout(() => setSaved(false), 1200);
