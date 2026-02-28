@@ -14,7 +14,7 @@
 - [x] Install required dependencies: dexie, dexie-react-hooks, @serwist/next, serwist, @anthropic-ai/sdk (spec: pwa-offline.md)
 - [x] Configure Serwist PWA: next.config.ts integration, service worker entry file, precaching setup (spec: pwa-offline.md)
 - [x] Create web app manifest with name, icons, theme-color, display:standalone, start_url, background_color (spec: pwa-offline.md)
-- [ ] Add Apple PWA meta tags: apple-touch-icon, apple-mobile-web-app-capable, apple-mobile-web-app-status-bar-style (spec: pwa-offline.md)
+- [x] Add Apple PWA meta tags: apple-touch-icon, apple-mobile-web-app-capable, apple-mobile-web-app-status-bar-style (spec: pwa-offline.md)
 
 ### Phase 2: Database
 
