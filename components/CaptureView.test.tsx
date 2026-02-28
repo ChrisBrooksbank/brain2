@@ -49,7 +49,8 @@ function makeMockRecognition() {
         },
         _fireResult(transcript: string) {
             handlers.onresult?.({
-                results: [[{ transcript }]],
+                resultIndex: 0,
+                results: [{ 0: { transcript }, isFinal: true, length: 1 }],
             });
         },
         _fireEnd() {
@@ -249,7 +250,7 @@ describe('CaptureView', () => {
             expect(screen.getByRole('button', { name: /start recording/i })).toBeInTheDocument();
         });
 
-        it('returns to idle state when recognition ends naturally', async () => {
+        it('auto-restarts when recognition ends while still listening', async () => {
             const mockRec = makeMockRecognition();
             (window as unknown as Record<string, unknown>).SpeechRecognition = vi.fn(function () {
                 return mockRec;
@@ -260,8 +261,30 @@ describe('CaptureView', () => {
                 fireEvent.click(screen.getByRole('button', { name: /start recording/i }));
             });
 
+            mockRec.start.mockClear();
             await act(async () => {
                 mockRec._fireEnd();
+            });
+
+            // Should auto-restart, staying in listening state
+            expect(mockRec.start).toHaveBeenCalledOnce();
+            expect(screen.getByRole('button', { name: /stop recording/i })).toBeInTheDocument();
+        });
+
+        it('returns to idle when recognition ends after user stops', async () => {
+            const mockRec = makeMockRecognition();
+            (window as unknown as Record<string, unknown>).SpeechRecognition = vi.fn(function () {
+                return mockRec;
+            });
+
+            render(<CaptureView />);
+            await act(async () => {
+                fireEvent.click(screen.getByRole('button', { name: /start recording/i }));
+            });
+
+            // User clicks stop — this nulls the ref and calls stop()
+            await act(async () => {
+                fireEvent.click(screen.getByRole('button', { name: /stop recording/i }));
             });
 
             expect(screen.getByRole('button', { name: /start recording/i })).toBeInTheDocument();
