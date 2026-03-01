@@ -1,0 +1,240 @@
+'use client';
+
+import { useState, useCallback } from 'react';
+import { useConfigValue } from '@/hooks/useConfigValue';
+import { setConfig, db } from '@/lib/db';
+import {
+    isTokenValid,
+    loadGisScript,
+    requestAccessToken,
+    performBackup,
+    performRestore,
+    disconnect,
+    clearToken,
+} from '@/lib/gdrive';
+
+const CLIENT_ID_KEY = 'gdrive_client_id';
+const LAST_BACKUP_KEY = 'gdrive_last_backup';
+
+type Status = 'idle' | 'connecting' | 'connected' | 'backing-up' | 'restoring';
+
+export default function GoogleDriveSection() {
+    const savedClientId = useConfigValue(CLIENT_ID_KEY, '');
+    const lastBackup = useConfigValue(LAST_BACKUP_KEY, '');
+    const [inputId, setInputId] = useState('');
+    const [status, setStatus] = useState<Status>(() =>
+        isTokenValid() ? 'connected' : 'idle',
+    );
+    const [message, setMessage] = useState<string | null>(null);
+
+    const showMessage = (msg: string) => {
+        setMessage(msg);
+        setTimeout(() => setMessage(null), 5000);
+    };
+
+    const handleSaveClientId = useCallback(async () => {
+        const trimmed = inputId.trim();
+        if (!trimmed) return;
+        await setConfig(CLIENT_ID_KEY, trimmed);
+        setInputId('');
+    }, [inputId]);
+
+    const handleClearClientId = useCallback(async () => {
+        await db.config.delete(CLIENT_ID_KEY);
+        await db.config.delete(LAST_BACKUP_KEY);
+        clearToken();
+        setStatus('idle');
+    }, []);
+
+    const handleConnect = useCallback(async () => {
+        if (!savedClientId) return;
+        setStatus('connecting');
+        try {
+            await loadGisScript();
+            await requestAccessToken(savedClientId);
+            setStatus('connected');
+        } catch (err) {
+            setStatus('idle');
+            showMessage(
+                err instanceof Error ? err.message : 'Connection failed',
+            );
+        }
+    }, [savedClientId]);
+
+    const handleDisconnect = useCallback(async () => {
+        await disconnect();
+        setStatus('idle');
+    }, []);
+
+    const handleBackup = useCallback(async () => {
+        if (!savedClientId) return;
+        setStatus('backing-up');
+        const result = await performBackup(savedClientId);
+        if (result.success) {
+            const now = new Date().toISOString();
+            await setConfig(LAST_BACKUP_KEY, now);
+            setStatus('connected');
+            showMessage('Backup complete');
+        } else {
+            setStatus(result.error?.includes('expired') ? 'idle' : 'connected');
+            showMessage(result.error ?? 'Backup failed');
+        }
+    }, [savedClientId]);
+
+    const handleRestore = useCallback(async () => {
+        if (!savedClientId) return;
+        const confirmed = window.confirm(
+            'This will merge notes from your Google Drive backup. Existing notes won\u2019t be duplicated. Continue?',
+        );
+        if (!confirmed) return;
+        setStatus('restoring');
+        const result = await performRestore(savedClientId);
+        if (result.success) {
+            setStatus('connected');
+            showMessage(
+                `Restored ${result.added} new note${result.added !== 1 ? 's' : ''}, ${result.skipped} already existed`,
+            );
+        } else {
+            setStatus(result.error?.includes('expired') ? 'idle' : 'connected');
+            showMessage(result.error ?? 'Restore failed');
+        }
+    }, [savedClientId]);
+
+    const isConnected = status === 'connected';
+    const isBusy =
+        status === 'connecting' ||
+        status === 'backing-up' ||
+        status === 'restoring';
+
+    return (
+        <section className="flex flex-col gap-3">
+            <h2 className="text-sm font-medium text-neutral-400 uppercase tracking-wide">
+                Google Drive Backup
+            </h2>
+
+            {!savedClientId ? (
+                <>
+                    <label
+                        className="text-sm text-neutral-300"
+                        htmlFor="gdrive-client-id"
+                    >
+                        OAuth Client ID
+                    </label>
+                    <input
+                        id="gdrive-client-id"
+                        type="text"
+                        value={inputId}
+                        onChange={(e) => setInputId(e.target.value)}
+                        placeholder="123456789.apps.googleusercontent.com"
+                        className="min-h-[44px] rounded-xl bg-neutral-900 px-4 text-white placeholder-neutral-500 outline-none focus:ring-2 focus:ring-neutral-600"
+                    />
+                    <button
+                        onClick={handleSaveClientId}
+                        disabled={!inputId.trim()}
+                        className="min-h-[44px] rounded-xl bg-white text-black text-base font-semibold transition-opacity disabled:opacity-30 active:opacity-75"
+                    >
+                        Save
+                    </button>
+                    <p className="text-xs text-neutral-500">
+                        Create an OAuth Client ID at{' '}
+                        <a
+                            href="https://console.cloud.google.com/apis/credentials"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="underline text-neutral-400"
+                        >
+                            Google Cloud Console
+                        </a>
+                        . Enable the Google Drive API, create a Web Application
+                        credential, and add your origins (e.g.
+                        https://brain2-app.netlify.app).
+                    </p>
+                </>
+            ) : !isConnected && !isBusy ? (
+                <>
+                    <div className="flex items-center justify-between">
+                        <span className="text-sm text-neutral-300">
+                            Client ID saved
+                        </span>
+                        <span className="text-xs text-neutral-500">
+                            Not connected
+                        </span>
+                    </div>
+                    <button
+                        onClick={handleConnect}
+                        className="min-h-[44px] rounded-xl bg-neutral-800 text-neutral-300 text-sm px-4 transition-opacity active:opacity-75 text-left"
+                    >
+                        Connect to Google Drive
+                    </button>
+                    <button
+                        onClick={handleClearClientId}
+                        className="min-h-[44px] rounded-xl bg-neutral-800 text-neutral-300 text-sm px-4 transition-opacity active:opacity-75 text-left"
+                    >
+                        Clear Client ID
+                    </button>
+                </>
+            ) : (
+                <>
+                    <div className="flex items-center justify-between">
+                        <span className="text-sm text-neutral-300">
+                            Google Drive
+                        </span>
+                        <span className="text-xs font-medium text-green-400">
+                            {status === 'connecting'
+                                ? 'Connecting...'
+                                : status === 'backing-up'
+                                  ? 'Backing up...'
+                                  : status === 'restoring'
+                                    ? 'Restoring...'
+                                    : 'Connected'}
+                        </span>
+                    </div>
+                    <button
+                        onClick={handleBackup}
+                        disabled={isBusy}
+                        className="min-h-[44px] rounded-xl bg-neutral-800 text-neutral-300 text-sm px-4 transition-opacity disabled:opacity-30 active:opacity-75 text-left"
+                    >
+                        {status === 'backing-up' ? 'Backing up...' : 'Backup Now'}
+                    </button>
+                    <button
+                        onClick={handleRestore}
+                        disabled={isBusy}
+                        className="min-h-[44px] rounded-xl bg-neutral-800 text-neutral-300 text-sm px-4 transition-opacity disabled:opacity-30 active:opacity-75 text-left"
+                    >
+                        {status === 'restoring' ? 'Restoring...' : 'Restore from Backup'}
+                    </button>
+                    {lastBackup && (
+                        <p className="text-xs text-neutral-500">
+                            Last backup:{' '}
+                            {new Date(lastBackup).toLocaleString()}
+                        </p>
+                    )}
+                    <button
+                        onClick={handleDisconnect}
+                        disabled={isBusy}
+                        className="min-h-[44px] rounded-xl bg-neutral-800 text-neutral-300 text-sm px-4 transition-opacity disabled:opacity-30 active:opacity-75 text-left"
+                    >
+                        Disconnect
+                    </button>
+                    <button
+                        onClick={handleClearClientId}
+                        disabled={isBusy}
+                        className="min-h-[44px] rounded-xl bg-neutral-800 text-neutral-300 text-sm px-4 transition-opacity disabled:opacity-30 active:opacity-75 text-left"
+                    >
+                        Clear Client ID
+                    </button>
+                </>
+            )}
+
+            {message && (
+                <span
+                    className="text-sm text-neutral-400"
+                    role="status"
+                    aria-live="polite"
+                >
+                    {message}
+                </span>
+            )}
+        </section>
+    );
+}

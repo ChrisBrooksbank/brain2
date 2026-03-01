@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { getConfig, setConfig, db } from '@/lib/db';
 import { exportNotesAsZip, downloadBlob, parseMarkdownNote } from '@/lib/export';
 import { useConfigValue } from '@/hooks/useConfigValue';
+import GoogleDriveSection from './GoogleDriveSection';
 
 const API_KEY_CONFIG = 'anthropic_api_key';
 
@@ -257,6 +258,7 @@ export default function SettingsView() {
                     </span>
                 )}
             </section>
+            <GoogleDriveSection />
             <SearchSettingsSection />
             <AppearanceSection />
             <ReviewSizeSection />

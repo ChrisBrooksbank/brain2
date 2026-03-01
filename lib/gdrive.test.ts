@@ -1,0 +1,144 @@
+import 'fake-indexeddb/auto';
+import { describe, it, expect, beforeEach } from 'vitest';
+import { db } from './db';
+import {
+    storeToken,
+    getStoredToken,
+    getStoredExpiry,
+    clearToken,
+    isTokenValid,
+    buildBackupPayload,
+    deduplicateNotes,
+} from './gdrive';
+import type { Note } from './db';
+
+beforeEach(async () => {
+    await db.notes.clear();
+    await db.embeddings.clear();
+    sessionStorage.clear();
+});
+
+describe('token management', () => {
+    it('stores and retrieves a token', () => {
+        storeToken('abc123', 3600);
+        expect(getStoredToken()).toBe('abc123');
+        expect(getStoredExpiry()).toBeGreaterThan(Date.now());
+    });
+
+    it('clears token from sessionStorage', () => {
+        storeToken('abc123', 3600);
+        clearToken();
+        expect(getStoredToken()).toBeNull();
+        expect(getStoredExpiry()).toBe(0);
+    });
+
+    it('isTokenValid returns true for non-expired token', () => {
+        storeToken('abc123', 3600);
+        expect(isTokenValid()).toBe(true);
+    });
+
+    it('isTokenValid returns false when no token stored', () => {
+        expect(isTokenValid()).toBe(false);
+    });
+
+    it('isTokenValid returns false for expired token', () => {
+        storeToken('abc123', -1);
+        expect(isTokenValid()).toBe(false);
+    });
+});
+
+describe('buildBackupPayload', () => {
+    it('serializes notes and embeddings', async () => {
+        const noteId = await db.notes.add({
+            text: 'Hello',
+            tags: ['test'],
+            createdAt: new Date('2025-01-01'),
+            archived: false,
+        });
+        await db.embeddings.add({ noteId, vector: [0.1, 0.2, 0.3] } as import('./db').Embedding);
+
+        const payload = await buildBackupPayload();
+
+        expect(payload.version).toBe(1);
+        expect(payload.createdAt).toBeTruthy();
+        expect(payload.notes).toHaveLength(1);
+        expect(payload.notes[0].text).toBe('Hello');
+        expect(payload.embeddings).toHaveLength(1);
+        expect(payload.embeddings[0].vector).toEqual([0.1, 0.2, 0.3]);
+    });
+
+    it('returns empty arrays when no data exists', async () => {
+        const payload = await buildBackupPayload();
+
+        expect(payload.notes).toHaveLength(0);
+        expect(payload.embeddings).toHaveLength(0);
+    });
+});
+
+describe('deduplicateNotes', () => {
+    const makeNote = (text: string, date: string): Note => ({
+        id: 1,
+        text,
+        tags: [],
+        createdAt: new Date(date),
+        archived: false,
+    });
+
+    it('identifies new notes to add', () => {
+        const existing = [makeNote('Note A', '2025-01-01')];
+        const incoming = [makeNote('Note B', '2025-01-02')];
+
+        const { toAdd, skipped } = deduplicateNotes(existing, incoming);
+        expect(toAdd).toHaveLength(1);
+        expect(toAdd[0].text).toBe('Note B');
+        expect(skipped).toBe(0);
+    });
+
+    it('skips notes with matching createdAt and text', () => {
+        const existing = [makeNote('Same note', '2025-01-01')];
+        const incoming = [makeNote('Same note', '2025-01-01')];
+
+        const { toAdd, skipped } = deduplicateNotes(existing, incoming);
+        expect(toAdd).toHaveLength(0);
+        expect(skipped).toBe(1);
+    });
+
+    it('treats same text with different dates as different', () => {
+        const existing = [makeNote('Same text', '2025-01-01')];
+        const incoming = [makeNote('Same text', '2025-06-15')];
+
+        const { toAdd, skipped } = deduplicateNotes(existing, incoming);
+        expect(toAdd).toHaveLength(1);
+        expect(skipped).toBe(0);
+    });
+
+    it('handles string dates from JSON (not Date objects)', () => {
+        const existing = [makeNote('Note', '2025-01-01')];
+        // Simulate JSON-parsed note where createdAt is a string
+        const incoming = [
+            {
+                ...makeNote('Note', '2025-01-01'),
+                createdAt: '2025-01-01T00:00:00.000Z' as unknown as Date,
+            },
+        ];
+
+        const { skipped } = deduplicateNotes(existing, incoming);
+        expect(skipped).toBe(1);
+    });
+
+    it('handles mix of new and existing notes', () => {
+        const existing = [
+            makeNote('A', '2025-01-01'),
+            makeNote('B', '2025-01-02'),
+        ];
+        const incoming = [
+            makeNote('A', '2025-01-01'),
+            makeNote('C', '2025-01-03'),
+            makeNote('D', '2025-01-04'),
+        ];
+
+        const { toAdd, skipped } = deduplicateNotes(existing, incoming);
+        expect(toAdd).toHaveLength(2);
+        expect(skipped).toBe(1);
+    });
+});

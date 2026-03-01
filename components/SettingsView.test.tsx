@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act, within } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import SettingsView from './SettingsView';
 
@@ -31,6 +31,16 @@ vi.mock('@/lib/export', () => ({
     exportNotesAsZip: (...args: unknown[]) => mockExportNotesAsZip(...args),
     downloadBlob: (...args: unknown[]) => mockDownloadBlob(...args),
     parseMarkdownNote: (...args: unknown[]) => mockParseMarkdownNote(...args),
+}));
+
+vi.mock('@/lib/gdrive', () => ({
+    isTokenValid: () => false,
+    loadGisScript: vi.fn(),
+    requestAccessToken: vi.fn(),
+    performBackup: vi.fn(),
+    performRestore: vi.fn(),
+    disconnect: vi.fn(),
+    clearToken: vi.fn(),
 }));
 
 beforeEach(() => {
@@ -80,15 +90,17 @@ describe('SettingsView', () => {
 
     it('Save button is disabled when input is empty', () => {
         render(<SettingsView />);
-        expect(screen.getByRole('button', { name: /^save$/i })).toBeDisabled();
+        const aiSection = screen.getByText(/ai configuration/i).closest('section')!;
+        expect(within(aiSection).getByRole('button', { name: /^save$/i })).toBeDisabled();
     });
 
     it('Save button persists key to config', async () => {
         render(<SettingsView />);
+        const aiSection = screen.getByText(/ai configuration/i).closest('section')!;
         fireEvent.change(screen.getByLabelText(/claude api key/i), {
             target: { value: 'sk-ant-test' },
         });
-        fireEvent.click(screen.getByRole('button', { name: /^save$/i }));
+        fireEvent.click(within(aiSection).getByRole('button', { name: /^save$/i }));
         await waitFor(() => {
             expect(mockSetConfig).toHaveBeenCalledWith('anthropic_api_key', 'sk-ant-test');
         });
@@ -96,10 +108,11 @@ describe('SettingsView', () => {
 
     it('shows saved confirmation after saving', async () => {
         render(<SettingsView />);
+        const aiSection = screen.getByText(/ai configuration/i).closest('section')!;
         fireEvent.change(screen.getByLabelText(/claude api key/i), {
             target: { value: 'sk-ant-test' },
         });
-        fireEvent.click(screen.getByRole('button', { name: /^save$/i }));
+        fireEvent.click(within(aiSection).getByRole('button', { name: /^save$/i }));
         await waitFor(() => {
             expect(screen.getByRole('alert')).toHaveTextContent(/saved/i);
         });
@@ -195,9 +208,10 @@ describe('SettingsView', () => {
         await waitFor(() => {
             expect(screen.getByRole('status')).toHaveTextContent('Connected');
         });
-        fireEvent.click(screen.getByRole('button', { name: /^save$/i }));
+        const aiSection = screen.getByText(/ai configuration/i).closest('section')!;
+        fireEvent.click(within(aiSection).getByRole('button', { name: /^save$/i }));
         await waitFor(() => {
-            expect(screen.getByRole('status')).toHaveTextContent('No key set');
+            expect(within(aiSection).getByRole('status')).toHaveTextContent('No key set');
         });
     });
 
