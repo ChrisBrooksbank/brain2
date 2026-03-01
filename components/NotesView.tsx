@@ -65,7 +65,7 @@ export default function NotesView() {
                             aria-expanded={isExpanded}
                             aria-label={isExpanded ? 'Collapse note' : 'Expand note'}
                         >
-                            <p className={isExpanded ? 'whitespace-pre-wrap break-words' : 'line-clamp-3'}>
+                            <p className={isExpanded ? 'whitespace-pre-wrap break-words text-note' : 'line-clamp-3 text-note'}>
                                 {isExpanded ? (
                                     <NoteText
                                         text={note.text}

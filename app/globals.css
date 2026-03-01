@@ -22,3 +22,19 @@ body {
 @utility animate-page-enter {
     animation: page-enter 0.2s ease-out;
 }
+
+:root {
+    --note-font-size: 1rem;
+}
+
+[data-font-size='small'] {
+    --note-font-size: 0.875rem;
+}
+
+[data-font-size='large'] {
+    --note-font-size: 1.125rem;
+}
+
+@utility text-note {
+    font-size: var(--note-font-size);
+}

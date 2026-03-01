@@ -5,10 +5,13 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { db, archiveNote } from '@/lib/db';
 import NoteText from './NoteText';
+import { useConfigValue } from '@/hooks/useConfigValue';
 
 export default function ReviewView() {
     const router = useRouter();
     const [keptIds, setKeptIds] = useState<number[]>([]);
+    const sessionSizeStr = useConfigValue('review_session_size', '5');
+    const sessionSize = parseInt(sessionSizeStr, 10) || 5;
 
     // Shuffle and slice happen inside useLiveQuery (outside React render purity constraints)
     const reviewNotes = useLiveQuery(async () => {
@@ -21,8 +24,8 @@ export default function ReviewView() {
             const j = Math.floor(Math.random() * (i + 1));
             [notes[i], notes[j]] = [notes[j], notes[i]];
         }
-        return notes.slice(0, 5);
-    }, []);
+        return notes.slice(0, sessionSize);
+    }, [sessionSize]);
 
     if (reviewNotes === undefined) {
         return <p className="p-4 text-neutral-500">Loading…</p>;
@@ -42,7 +45,7 @@ export default function ReviewView() {
         <ul className="flex flex-col gap-2 p-4 animate-page-enter">
             {visibleNotes.map((note) => (
                 <li key={note.id} className="rounded-xl bg-neutral-900 p-4">
-                    <p className="whitespace-pre-wrap break-words">
+                    <p className="whitespace-pre-wrap break-words text-note">
                         <NoteText
                             text={note.text}
                             onWikiLinkClick={(target) => router.push(`/search?q=${encodeURIComponent(target)}`)}

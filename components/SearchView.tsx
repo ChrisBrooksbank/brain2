@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { db, type Note } from '@/lib/db';
 import { relativeTime } from '@/lib/utils';
 import NoteText from './NoteText';
+import { useConfigValue } from '@/hooks/useConfigValue';
 
 type SearchMode = 'keyword' | 'semantic';
 
@@ -14,6 +15,7 @@ export default function SearchView() {
     const initialQuery = searchParams.get('q') ?? '';
     const [input, setInput] = useState(initialQuery);
     const [query, setQuery] = useState(initialQuery);
+    const semanticEnabled = useConfigValue('semantic_search_enabled', 'false');
     const [mode, setMode] = useState<SearchMode>('keyword');
 
     // Semantic search state
@@ -26,6 +28,13 @@ export default function SearchView() {
         setInput(q);
         setQuery(q);
     }, [searchParams]);
+
+    // Fall back to keyword mode when semantic gets disabled
+    useEffect(() => {
+        if (semanticEnabled !== 'true' && mode === 'semantic') {
+            setMode('keyword');
+        }
+    }, [semanticEnabled, mode]);
 
     useEffect(() => {
         const timer = setTimeout(() => setQuery(input.trim()), 200);
@@ -110,7 +119,7 @@ export default function SearchView() {
                     {Math.round(score * 100)}%
                 </span>
             )}
-            <p className="whitespace-pre-wrap break-words">
+            <p className="whitespace-pre-wrap break-words text-note">
                 <NoteText
                     text={note.text}
                     highlight={mode === 'keyword' ? query : undefined}
@@ -147,28 +156,30 @@ export default function SearchView() {
                     aria-label="Search notes"
                     className="w-full min-h-[44px] rounded-xl bg-neutral-900 px-4 py-3 text-white placeholder-neutral-500 outline-none focus:ring-2 focus:ring-blue-600"
                 />
-                <div className="mt-2 flex rounded-lg bg-neutral-900 p-1">
-                    <button
-                        onClick={() => handleModeSwitch('keyword')}
-                        className={`flex-1 rounded-md px-3 py-1.5 text-sm transition-colors ${
-                            mode === 'keyword'
-                                ? 'bg-neutral-700 text-white'
-                                : 'text-neutral-400 hover:text-neutral-300'
-                        }`}
-                    >
-                        Keyword
-                    </button>
-                    <button
-                        onClick={() => handleModeSwitch('semantic')}
-                        className={`flex-1 rounded-md px-3 py-1.5 text-sm transition-colors ${
-                            mode === 'semantic'
-                                ? 'bg-neutral-700 text-white'
-                                : 'text-neutral-400 hover:text-neutral-300'
-                        }`}
-                    >
-                        Semantic
-                    </button>
-                </div>
+                {semanticEnabled === 'true' && (
+                    <div className="mt-2 flex rounded-lg bg-neutral-900 p-1">
+                        <button
+                            onClick={() => handleModeSwitch('keyword')}
+                            className={`flex-1 rounded-md px-3 py-1.5 text-sm transition-colors ${
+                                mode === 'keyword'
+                                    ? 'bg-neutral-700 text-white'
+                                    : 'text-neutral-400 hover:text-neutral-300'
+                            }`}
+                        >
+                            Keyword
+                        </button>
+                        <button
+                            onClick={() => handleModeSwitch('semantic')}
+                            className={`flex-1 rounded-md px-3 py-1.5 text-sm transition-colors ${
+                                mode === 'semantic'
+                                    ? 'bg-neutral-700 text-white'
+                                    : 'text-neutral-400 hover:text-neutral-300'
+                            }`}
+                        >
+                            Semantic
+                        </button>
+                    </div>
+                )}
             </div>
             {allNotes === undefined && (
                 <p className="px-4 text-neutral-500">Loading…</p>

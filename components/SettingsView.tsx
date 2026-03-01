@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { getConfig, setConfig, db } from '@/lib/db';
 import { exportNotesAsZip, downloadBlob, parseMarkdownNote } from '@/lib/export';
+import { useConfigValue } from '@/hooks/useConfigValue';
 
 const API_KEY_CONFIG = 'anthropic_api_key';
 
@@ -256,6 +257,157 @@ export default function SettingsView() {
                     </span>
                 )}
             </section>
+            <SearchSettingsSection />
+            <AppearanceSection />
+            <ReviewSizeSection />
         </div>
+    );
+}
+
+function SegmentedControl({
+    options,
+    value,
+    onChange,
+    ariaLabel,
+}: {
+    options: { label: string; value: string }[];
+    value: string;
+    onChange: (value: string) => void;
+    ariaLabel: string;
+}) {
+    return (
+        <div className="flex rounded-lg bg-neutral-900 p-1" role="radiogroup" aria-label={ariaLabel}>
+            {options.map((opt) => (
+                <button
+                    key={opt.value}
+                    role="radio"
+                    aria-checked={value === opt.value}
+                    onClick={() => onChange(opt.value)}
+                    className={`flex-1 rounded-md px-3 py-2 text-sm transition-colors ${
+                        value === opt.value
+                            ? 'bg-neutral-700 text-white'
+                            : 'text-neutral-400 hover:text-neutral-300'
+                    }`}
+                >
+                    {opt.label}
+                </button>
+            ))}
+        </div>
+    );
+}
+
+function SearchSettingsSection() {
+    const semanticEnabled = useConfigValue('semantic_search_enabled', 'false');
+    const [clearing, setClearing] = useState(false);
+
+    const handleToggle = useCallback(async () => {
+        if (semanticEnabled === 'true') {
+            await setConfig('semantic_search_enabled', 'false');
+        } else {
+            const confirmed = window.confirm(
+                'Enabling semantic search will download an AI model (~33 MB). Continue?',
+            );
+            if (confirmed) {
+                await setConfig('semantic_search_enabled', 'true');
+            }
+        }
+    }, [semanticEnabled]);
+
+    const handleClearCache = useCallback(async () => {
+        setClearing(true);
+        try {
+            await db.embeddings.clear();
+            const keys = await caches.keys();
+            for (const key of keys) {
+                if (key.includes('transformers')) {
+                    await caches.delete(key);
+                }
+            }
+        } finally {
+            setClearing(false);
+        }
+    }, []);
+
+    return (
+        <section className="flex flex-col gap-3">
+            <h2 className="text-sm font-medium text-neutral-400 uppercase tracking-wide">
+                Search
+            </h2>
+            <div className="flex items-center justify-between">
+                <span className="text-sm text-neutral-300">Semantic search</span>
+                <button
+                    role="switch"
+                    aria-checked={semanticEnabled === 'true'}
+                    aria-label="Toggle semantic search"
+                    onClick={handleToggle}
+                    className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${
+                        semanticEnabled === 'true' ? 'bg-blue-600' : 'bg-neutral-700'
+                    }`}
+                >
+                    <span
+                        className={`inline-block h-5 w-5 rounded-full bg-white transition-transform ${
+                            semanticEnabled === 'true' ? 'translate-x-6' : 'translate-x-1'
+                        }`}
+                    />
+                </button>
+            </div>
+            <p className="text-xs text-neutral-500">
+                Downloads a ~33 MB AI model for meaning-based search.
+            </p>
+            <button
+                onClick={handleClearCache}
+                disabled={clearing}
+                className="min-h-[44px] rounded-xl bg-neutral-800 text-neutral-300 text-sm px-4 transition-opacity disabled:opacity-30 text-left active:opacity-75"
+            >
+                {clearing ? 'Clearing…' : 'Clear model cache'}
+            </button>
+        </section>
+    );
+}
+
+function AppearanceSection() {
+    const fontSize = useConfigValue('font_size', 'medium');
+
+    return (
+        <section className="flex flex-col gap-3">
+            <h2 className="text-sm font-medium text-neutral-400 uppercase tracking-wide">
+                Appearance
+            </h2>
+            <label className="text-sm text-neutral-300">Note font size</label>
+            <SegmentedControl
+                ariaLabel="Font size"
+                options={[
+                    { label: 'Small', value: 'small' },
+                    { label: 'Medium', value: 'medium' },
+                    { label: 'Large', value: 'large' },
+                ]}
+                value={fontSize}
+                onChange={(v) => setConfig('font_size', v)}
+            />
+        </section>
+    );
+}
+
+function ReviewSizeSection() {
+    const sessionSize = useConfigValue('review_session_size', '5');
+
+    return (
+        <section className="flex flex-col gap-3">
+            <h2 className="text-sm font-medium text-neutral-400 uppercase tracking-wide">
+                Review
+            </h2>
+            <label className="text-sm text-neutral-300">Notes per session</label>
+            <SegmentedControl
+                ariaLabel="Review session size"
+                options={[
+                    { label: '3', value: '3' },
+                    { label: '5', value: '5' },
+                    { label: '10', value: '10' },
+                    { label: '15', value: '15' },
+                ]}
+                value={sessionSize}
+                onChange={(v) => setConfig('review_session_size', v)}
+            />
+        </section>
     );
 }
