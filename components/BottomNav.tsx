@@ -16,7 +16,7 @@ export default function BottomNav() {
 
     return (
         <nav
-            className="flex border-t border-neutral-800 bg-neutral-950 pb-[env(safe-area-inset-bottom)]"
+            className="flex border-t border-default bg-base pb-[env(safe-area-inset-bottom)]"
             aria-label="Main navigation"
         >
             {tabs.map(({ href, label, icon }) => {
@@ -27,8 +27,8 @@ export default function BottomNav() {
                         href={href}
                         className={`flex flex-1 flex-col items-center justify-center gap-0.5 min-h-[44px] text-xs transition-colors active:opacity-60 ${
                             isActive
-                                ? 'text-white'
-                                : 'text-neutral-500 hover:text-neutral-300'
+                                ? 'text-primary'
+                                : 'text-muted hover:text-secondary'
                         }`}
                         aria-current={isActive ? 'page' : undefined}
                     >

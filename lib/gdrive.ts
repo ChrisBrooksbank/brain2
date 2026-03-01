@@ -2,19 +2,19 @@ import { db, type Note, type Embedding } from './db';
 
 // --- Types ---
 
-export interface Brain2Backup {
+interface Brain2Backup {
     version: 1;
     createdAt: string;
     notes: Note[];
     embeddings: Embedding[];
 }
 
-export interface BackupResult {
+interface BackupResult {
     success: boolean;
     error?: string;
 }
 
-export interface RestoreResult {
+interface RestoreResult {
     success: boolean;
     added: number;
     skipped: number;
@@ -179,7 +179,7 @@ async function driveGet(token: string, path: string): Promise<Response> {
 }
 
 /** Find or create the Brain2 folder, return its ID. */
-export async function ensureFolder(token: string): Promise<string> {
+async function ensureFolder(token: string): Promise<string> {
     if (cachedFolderId) return cachedFolderId;
 
     // Search for existing folder
@@ -218,7 +218,7 @@ export async function ensureFolder(token: string): Promise<string> {
 }
 
 /** Find the backup file inside the Brain2 folder. Returns fileId or null. */
-export async function findBackupFile(
+async function findBackupFile(
     token: string,
     folderId: string,
 ): Promise<string | null> {
@@ -245,7 +245,7 @@ export async function findBackupFile(
  * limit (#11). Typical usage (thousands of notes with embeddings) fits
  * comfortably, but very large datasets may need resumable uploads.
  */
-export async function uploadBackup(
+async function uploadBackup(
     token: string,
     payload: Brain2Backup,
     folderId: string,
@@ -331,7 +331,7 @@ export function validateBackup(data: unknown): Brain2Backup {
 }
 
 /** Download and parse the backup file. */
-export async function downloadBackup(
+async function downloadBackup(
     token: string,
 ): Promise<Brain2Backup | null> {
     const folderId = await ensureFolder(token);

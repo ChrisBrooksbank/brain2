@@ -1,4 +1,4 @@
-export interface WikiLinkSegment {
+interface WikiLinkSegment {
     type: 'text' | 'wikilink';
     content: string;
 }

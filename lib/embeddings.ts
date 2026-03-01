@@ -58,6 +58,24 @@ export async function semanticSearch(
     return scored;
 }
 
+async function embedNoteList(
+    notes: { id: number; text: string }[],
+    onProgress?: (done: number, total: number) => void,
+): Promise<void> {
+    for (let i = 0; i < notes.length; i++) {
+        await embedNote(notes[i].id, notes[i].text);
+        onProgress?.(i + 1, notes.length);
+    }
+}
+
+export async function regenerateAllEmbeddings(
+    onProgress?: (done: number, total: number) => void,
+): Promise<void> {
+    await db.embeddings.clear();
+    const allNotes = await db.notes.toArray();
+    await embedNoteList(allNotes, onProgress);
+}
+
 export async function embedAllUnembedded(
     onProgress?: (done: number, total: number) => void,
 ): Promise<void> {
@@ -65,9 +83,5 @@ export async function embedAllUnembedded(
     const allEmbeddings = await getAllEmbeddings();
     const embeddedIds = new Set(allEmbeddings.map((e) => e.noteId));
     const unembedded = allNotes.filter((n) => !embeddedIds.has(n.id));
-
-    for (let i = 0; i < unembedded.length; i++) {
-        await embedNote(unembedded[i].id, unembedded[i].text);
-        onProgress?.(i + 1, unembedded.length);
-    }
+    await embedNoteList(unembedded, onProgress);
 }

@@ -28,14 +28,14 @@ export default function ReviewView() {
     }, [sessionSize]);
 
     if (reviewNotes === undefined) {
-        return <p className="p-4 text-neutral-500">Loading…</p>;
+        return <p className="p-4 text-muted">Loading…</p>;
     }
 
     const visibleNotes = reviewNotes.filter((n) => !keptIds.includes(n.id));
 
     if (visibleNotes.length === 0) {
         return (
-            <p className="p-4 text-neutral-500">
+            <p className="p-4 text-muted">
                 All caught up — no notes older than 24 hours to review.
             </p>
         );
@@ -44,7 +44,7 @@ export default function ReviewView() {
     return (
         <ul className="flex flex-col gap-2 p-4 animate-page-enter">
             {visibleNotes.map((note) => (
-                <li key={note.id} className="rounded-xl bg-neutral-900 p-4">
+                <li key={note.id} className="rounded-xl bg-card p-4">
                     <p className="whitespace-pre-wrap break-words text-note">
                         <NoteText
                             text={note.text}
@@ -56,7 +56,7 @@ export default function ReviewView() {
                             {note.tags.map((tag) => (
                                 <span
                                     key={tag}
-                                    className="rounded-full bg-neutral-800 px-2 py-0.5 text-xs text-neutral-300"
+                                    className="rounded-full bg-elevated px-2 py-0.5 text-xs text-secondary"
                                 >
                                     {tag}
                                 </span>
@@ -66,13 +66,13 @@ export default function ReviewView() {
                     <div className="mt-3 flex gap-2">
                         <button
                             onClick={() => setKeptIds((prev) => [...prev, note.id])}
-                            className="min-h-[44px] flex-1 rounded-lg bg-neutral-800 text-sm text-neutral-300 transition-colors hover:bg-neutral-700 active:opacity-75"
+                            className="min-h-[44px] flex-1 rounded-lg bg-elevated text-sm text-secondary transition-colors hover:bg-hover active:opacity-75"
                         >
                             Keep
                         </button>
                         <button
                             onClick={() => { navigator.vibrate?.(10); archiveNote(note.id); }}
-                            className="min-h-[44px] flex-1 rounded-lg bg-neutral-800 text-sm text-neutral-300 transition-colors hover:bg-neutral-700 active:opacity-75"
+                            className="min-h-[44px] flex-1 rounded-lg bg-elevated text-sm text-secondary transition-colors hover:bg-hover active:opacity-75"
                         >
                             Archive
                         </button>

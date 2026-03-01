@@ -144,17 +144,17 @@ export default function SettingsView() {
             ? 'text-green-400'
             : testStatus === 'invalid'
               ? 'text-red-400'
-              : 'text-neutral-500';
+              : 'text-muted';
 
     return (
         <div className="p-4 flex flex-col gap-6 animate-page-enter">
             <h1 className="text-xl font-semibold">Settings</h1>
             <section className="flex flex-col gap-3">
-                <h2 className="text-sm font-medium text-neutral-400 uppercase tracking-wide">
+                <h2 className="text-sm font-medium text-faint uppercase tracking-wide">
                     AI Configuration
                 </h2>
                 <div className="flex items-center justify-between">
-                    <label className="text-sm text-neutral-300" htmlFor="api-key-input">
+                    <label className="text-sm text-secondary" htmlFor="api-key-input">
                         Claude API Key
                     </label>
                     <span
@@ -172,14 +172,14 @@ export default function SettingsView() {
                         value={apiKey}
                         onChange={(e) => setApiKey(e.target.value)}
                         placeholder="sk-ant-…"
-                        className="flex-1 min-h-[44px] rounded-xl bg-neutral-900 px-4 text-white placeholder-neutral-500 outline-none focus:ring-2 focus:ring-neutral-600"
+                        className="flex-1 min-h-[44px] rounded-xl bg-card px-4 text-primary placeholder-muted outline-none focus:ring-2 focus:ring-ring"
                         aria-label="Claude API key"
                     />
                     <button
                         onClick={() => setShowKey((s) => !s)}
                         aria-label={showKey ? 'Hide API key' : 'Show API key'}
                         aria-pressed={showKey}
-                        className="min-h-[44px] min-w-[44px] rounded-xl bg-neutral-800 text-neutral-300 active:opacity-75"
+                        className="min-h-[44px] min-w-[44px] rounded-xl bg-elevated text-secondary active:opacity-75"
                     >
                         {showKey ? '🙈' : '👁'}
                     </button>
@@ -196,7 +196,7 @@ export default function SettingsView() {
                         onClick={handleTest}
                         disabled={!apiKey.trim() || testStatus === 'testing'}
                         aria-label="Test API key"
-                        className="min-h-[44px] rounded-xl bg-neutral-800 text-neutral-300 text-sm px-4 transition-opacity disabled:opacity-30 active:opacity-75"
+                        className="min-h-[44px] rounded-xl bg-elevated text-secondary text-sm px-4 transition-opacity disabled:opacity-30 active:opacity-75"
                     >
                         Test
                     </button>
@@ -204,26 +204,26 @@ export default function SettingsView() {
                         onClick={handleClear}
                         disabled={!apiKey}
                         aria-label="Clear API key"
-                        className="min-h-[44px] rounded-xl bg-neutral-800 text-neutral-300 text-sm px-4 transition-opacity disabled:opacity-30 active:opacity-75"
+                        className="min-h-[44px] rounded-xl bg-elevated text-secondary text-sm px-4 transition-opacity disabled:opacity-30 active:opacity-75"
                     >
                         Clear
                     </button>
                 </div>
                 {saved && (
-                    <span className="text-sm text-neutral-400 animate-pulse" role="alert">
+                    <span className="text-sm text-faint animate-pulse" role="alert">
                         Saved
                     </span>
                 )}
             </section>
             <section className="flex flex-col gap-3">
-                <h2 className="text-sm font-medium text-neutral-400 uppercase tracking-wide">
+                <h2 className="text-sm font-medium text-faint uppercase tracking-wide">
                     Data
                 </h2>
                 <button
                     onClick={handleExport}
                     disabled={exporting}
                     aria-label="Export all notes as ZIP"
-                    className="min-h-[44px] rounded-xl bg-neutral-800 text-neutral-300 text-sm px-4 transition-opacity disabled:opacity-30 text-left"
+                    className="min-h-[44px] rounded-xl bg-elevated text-secondary text-sm px-4 transition-opacity disabled:opacity-30 text-left"
                 >
                     {exporting ? 'Exporting…' : 'Export all notes (.zip)'}
                 </button>
@@ -231,7 +231,7 @@ export default function SettingsView() {
                     onClick={handleDownloadBackup}
                     disabled={downloadingBackup}
                     aria-label="Download backup as JSON"
-                    className="min-h-[44px] rounded-xl bg-neutral-800 text-neutral-300 text-sm px-4 transition-opacity disabled:opacity-30 text-left"
+                    className="min-h-[44px] rounded-xl bg-elevated text-secondary text-sm px-4 transition-opacity disabled:opacity-30 text-left"
                 >
                     {downloadingBackup ? 'Downloading…' : 'Download backup (.json)'}
                 </button>
@@ -248,12 +248,12 @@ export default function SettingsView() {
                     onClick={() => fileInputRef.current?.click()}
                     disabled={importing}
                     aria-label="Import notes from markdown files"
-                    className="min-h-[44px] rounded-xl bg-neutral-800 text-neutral-300 text-sm px-4 transition-opacity disabled:opacity-30 text-left"
+                    className="min-h-[44px] rounded-xl bg-elevated text-secondary text-sm px-4 transition-opacity disabled:opacity-30 text-left"
                 >
                     {importing ? 'Importing…' : 'Import notes (.md)'}
                 </button>
                 {importResult && (
-                    <span className="text-sm text-neutral-400" role="status" aria-live="polite">
+                    <span className="text-sm text-faint" role="status" aria-live="polite">
                         {importResult}
                     </span>
                 )}
@@ -278,7 +278,7 @@ function SegmentedControl({
     ariaLabel: string;
 }) {
     return (
-        <div className="flex rounded-lg bg-neutral-900 p-1" role="radiogroup" aria-label={ariaLabel}>
+        <div className="flex rounded-lg bg-card p-1" role="radiogroup" aria-label={ariaLabel}>
             {options.map((opt) => (
                 <button
                     key={opt.value}
@@ -287,8 +287,8 @@ function SegmentedControl({
                     onClick={() => onChange(opt.value)}
                     className={`flex-1 rounded-md px-3 py-2 text-sm transition-colors ${
                         value === opt.value
-                            ? 'bg-neutral-700 text-white'
-                            : 'text-neutral-400 hover:text-neutral-300'
+                            ? 'bg-hover text-primary'
+                            : 'text-faint hover:text-secondary'
                     }`}
                 >
                     {opt.label}
@@ -301,6 +301,8 @@ function SegmentedControl({
 function SearchSettingsSection() {
     const semanticEnabled = useConfigValue('semantic_search_enabled', 'false');
     const [clearing, setClearing] = useState(false);
+    const [regenerating, setRegenerating] = useState(false);
+    const [regenProgress, setRegenProgress] = useState<string | null>(null);
 
     const handleToggle = useCallback(async () => {
         if (semanticEnabled === 'true') {
@@ -330,20 +332,44 @@ function SearchSettingsSection() {
         }
     }, []);
 
+    const handleRegenerate = useCallback(async () => {
+        const confirmed = window.confirm(
+            'This will re-embed all notes. This may take a while. Continue?',
+        );
+        if (!confirmed) return;
+        setRegenerating(true);
+        setRegenProgress('Starting…');
+        try {
+            const { regenerateAllEmbeddings } = await import(
+                '@/lib/embeddings'
+            );
+            await regenerateAllEmbeddings((done, total) => {
+                setRegenProgress(`Re-indexing: ${done}/${total} notes`);
+            });
+            setRegenProgress('Done!');
+            setTimeout(() => setRegenProgress(null), 2000);
+        } catch {
+            setRegenProgress('Failed to regenerate index');
+            setTimeout(() => setRegenProgress(null), 3000);
+        } finally {
+            setRegenerating(false);
+        }
+    }, []);
+
     return (
         <section className="flex flex-col gap-3">
-            <h2 className="text-sm font-medium text-neutral-400 uppercase tracking-wide">
+            <h2 className="text-sm font-medium text-faint uppercase tracking-wide">
                 Search
             </h2>
             <div className="flex items-center justify-between">
-                <span className="text-sm text-neutral-300">Semantic search</span>
+                <span className="text-sm text-secondary">Semantic search</span>
                 <button
                     role="switch"
                     aria-checked={semanticEnabled === 'true'}
                     aria-label="Toggle semantic search"
                     onClick={handleToggle}
                     className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${
-                        semanticEnabled === 'true' ? 'bg-blue-600' : 'bg-neutral-700'
+                        semanticEnabled === 'true' ? 'bg-blue-600' : 'bg-hover'
                     }`}
                 >
                     <span
@@ -353,29 +379,61 @@ function SearchSettingsSection() {
                     />
                 </button>
             </div>
-            <p className="text-xs text-neutral-500">
+            <p className="text-xs text-muted">
                 Downloads a ~33 MB AI model for meaning-based search.
             </p>
             <button
                 onClick={handleClearCache}
                 disabled={clearing}
-                className="min-h-[44px] rounded-xl bg-neutral-800 text-neutral-300 text-sm px-4 transition-opacity disabled:opacity-30 text-left active:opacity-75"
+                className="min-h-[44px] rounded-xl bg-elevated text-secondary text-sm px-4 transition-opacity disabled:opacity-30 text-left active:opacity-75"
             >
                 {clearing ? 'Clearing…' : 'Clear model cache'}
             </button>
+            {semanticEnabled === 'true' && (
+                <button
+                    onClick={handleRegenerate}
+                    disabled={regenerating}
+                    className="min-h-[44px] rounded-xl bg-elevated text-secondary text-sm px-4 transition-opacity disabled:opacity-30 text-left active:opacity-75"
+                >
+                    {regenerating
+                        ? (regenProgress ?? 'Regenerating…')
+                        : 'Regenerate search index'}
+                </button>
+            )}
+            {regenProgress && !regenerating && (
+                <span
+                    className="text-sm text-faint"
+                    role="status"
+                    aria-live="polite"
+                >
+                    {regenProgress}
+                </span>
+            )}
         </section>
     );
 }
 
 function AppearanceSection() {
     const fontSize = useConfigValue('font_size', 'medium');
+    const theme = useConfigValue('theme', 'dark');
 
     return (
         <section className="flex flex-col gap-3">
-            <h2 className="text-sm font-medium text-neutral-400 uppercase tracking-wide">
+            <h2 className="text-sm font-medium text-faint uppercase tracking-wide">
                 Appearance
             </h2>
-            <label className="text-sm text-neutral-300">Note font size</label>
+            <label className="text-sm text-secondary">Theme</label>
+            <SegmentedControl
+                ariaLabel="Theme"
+                options={[
+                    { label: 'Dark', value: 'dark' },
+                    { label: 'Light', value: 'light' },
+                    { label: 'System', value: 'system' },
+                ]}
+                value={theme}
+                onChange={(v) => setConfig('theme', v)}
+            />
+            <label className="text-sm text-secondary">Note font size</label>
             <SegmentedControl
                 ariaLabel="Font size"
                 options={[
@@ -395,10 +453,10 @@ function ReviewSizeSection() {
 
     return (
         <section className="flex flex-col gap-3">
-            <h2 className="text-sm font-medium text-neutral-400 uppercase tracking-wide">
+            <h2 className="text-sm font-medium text-faint uppercase tracking-wide">
                 Review
             </h2>
-            <label className="text-sm text-neutral-300">Notes per session</label>
+            <label className="text-sm text-secondary">Notes per session</label>
             <SegmentedControl
                 ariaLabel="Review session size"
                 options={[

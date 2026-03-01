@@ -6,14 +6,7 @@
     },
     "ignoreDependencies": [
         "@anthropic-ai/sdk",
-        "@serwist/next",
-        "dexie",
-        "dexie-react-hooks",
-        "serwist",
-        "@testing-library/react",
         "tailwindcss",
-        "postcss",
-        "@huggingface/transformers",
-        "@testing-library/user-event"
+        "postcss"
     ]
 }

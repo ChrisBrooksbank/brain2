@@ -13,7 +13,7 @@ export interface Config {
     value: string;
 }
 
-export interface Backup {
+interface Backup {
     id: number;
     createdAt: Date;
     notes: Note[];
@@ -84,10 +84,6 @@ export async function putEmbedding(noteId: number, vector: number[]): Promise<vo
 
 export async function getEmbedding(noteId: number): Promise<Embedding | undefined> {
     return db.embeddings.where('noteId').equals(noteId).first();
-}
-
-export async function deleteEmbedding(noteId: number): Promise<void> {
-    await db.embeddings.where('noteId').equals(noteId).delete();
 }
 
 export async function getAllEmbeddings(): Promise<Embedding[]> {

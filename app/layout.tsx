@@ -3,6 +3,7 @@ import { Geist } from 'next/font/google';
 import BottomNav from '@/components/BottomNav';
 import BackupProvider from '@/components/BackupProvider';
 import FontSizeProvider from '@/components/FontSizeProvider';
+import ThemeProvider from '@/components/ThemeProvider';
 import './globals.css';
 
 const geistSans = Geist({
@@ -34,12 +35,13 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="en" className="bg-neutral-950">
+        <html lang="en" className="bg-base">
             <body
-                className={`${geistSans.variable} bg-neutral-950 text-white antialiased h-dvh flex flex-col`}
+                className={`${geistSans.variable} bg-base text-primary antialiased h-dvh flex flex-col`}
             >
                 <BackupProvider />
                 <FontSizeProvider />
+                <ThemeProvider />
                 <main className="flex-1 overflow-y-auto scroll-smooth">{children}</main>
                 <BottomNav />
             </body>

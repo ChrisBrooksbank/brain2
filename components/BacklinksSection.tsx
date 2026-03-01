@@ -28,13 +28,13 @@ export default function BacklinksSection({ noteId, noteText, onNavigate }: Backl
     if (!backlinks || backlinks.length === 0) return null;
 
     return (
-        <div className="mt-3 border-t border-neutral-800 pt-2">
+        <div className="mt-3 border-t border-default pt-2">
             <button
                 onClick={(e) => {
                     e.stopPropagation();
                     setOpen(!open);
                 }}
-                className="text-xs text-neutral-400 hover:text-neutral-300 transition-colors"
+                className="text-xs text-faint hover:text-secondary transition-colors"
                 aria-expanded={open}
             >
                 {open ? '▾' : '▸'} Linked from ({backlinks.length})
@@ -48,7 +48,7 @@ export default function BacklinksSection({ noteId, noteText, onNavigate }: Backl
                                     e.stopPropagation();
                                     onNavigate(note.text.split('\n')[0].trim());
                                 }}
-                                className="w-full text-left rounded-lg bg-neutral-800 px-3 py-2 text-sm text-neutral-300 hover:bg-neutral-700 transition-colors"
+                                className="w-full text-left rounded-lg bg-elevated px-3 py-2 text-sm text-secondary hover:bg-hover transition-colors"
                             >
                                 {truncate(note.text, 80)}
                             </button>

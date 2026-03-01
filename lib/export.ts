@@ -50,7 +50,7 @@ export async function exportNotesAsZip(notes: Note[]): Promise<Blob> {
     return zip.generateAsync({ type: 'blob' });
 }
 
-export interface ParsedNote {
+interface ParsedNote {
     text: string;
     tags: string[];
     createdAt: Date;

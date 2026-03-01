@@ -118,9 +118,9 @@ export default function SearchView() {
     );
 
     const renderNote = (note: Note, score?: number) => (
-        <li key={note.id} className="rounded-xl bg-neutral-900 p-4">
+        <li key={note.id} className="rounded-xl bg-card p-4">
             {note.archived && (
-                <span className="mb-2 inline-block rounded bg-neutral-700 px-2 py-0.5 text-xs text-neutral-400">
+                <span className="mb-2 inline-block rounded bg-hover px-2 py-0.5 text-xs text-faint">
                     Archived
                 </span>
             )}
@@ -136,7 +136,7 @@ export default function SearchView() {
                     onWikiLinkClick={handleWikiLinkClick}
                 />
             </p>
-            <span className="mt-1 block text-xs text-neutral-500">
+            <span className="mt-1 block text-xs text-muted">
                 {relativeTime(note.createdAt)}
             </span>
             {note.tags.length > 0 && (
@@ -144,7 +144,7 @@ export default function SearchView() {
                     {note.tags.map((tag) => (
                         <span
                             key={tag}
-                            className="rounded-full bg-neutral-800 px-2 py-0.5 text-xs text-neutral-300"
+                            className="rounded-full bg-elevated px-2 py-0.5 text-xs text-secondary"
                         >
                             {tag}
                         </span>
@@ -164,16 +164,16 @@ export default function SearchView() {
                     onChange={(e) => setInput(e.target.value)}
                     autoFocus
                     aria-label="Search notes"
-                    className="w-full min-h-[44px] rounded-xl bg-neutral-900 px-4 py-3 text-white placeholder-neutral-500 outline-none focus:ring-2 focus:ring-blue-600"
+                    className="w-full min-h-[44px] rounded-xl bg-card px-4 py-3 text-primary placeholder-muted outline-none focus:ring-2 focus:ring-blue-600"
                 />
                 {semanticEnabled === 'true' && (
-                    <div className="mt-2 flex rounded-lg bg-neutral-900 p-1">
+                    <div className="mt-2 flex rounded-lg bg-card p-1">
                         <button
                             onClick={() => handleModeSwitch('keyword')}
                             className={`flex-1 rounded-md px-3 py-1.5 text-sm transition-colors ${
                                 mode === 'keyword'
-                                    ? 'bg-neutral-700 text-white'
-                                    : 'text-neutral-400 hover:text-neutral-300'
+                                    ? 'bg-hover text-primary'
+                                    : 'text-faint hover:text-secondary'
                             }`}
                         >
                             Keyword
@@ -182,8 +182,8 @@ export default function SearchView() {
                             onClick={() => handleModeSwitch('semantic')}
                             className={`flex-1 rounded-md px-3 py-1.5 text-sm transition-colors ${
                                 mode === 'semantic'
-                                    ? 'bg-neutral-700 text-white'
-                                    : 'text-neutral-400 hover:text-neutral-300'
+                                    ? 'bg-hover text-primary'
+                                    : 'text-faint hover:text-secondary'
                             }`}
                         >
                             Semantic
@@ -192,15 +192,15 @@ export default function SearchView() {
                 )}
             </div>
             {allNotes === undefined && (
-                <p className="px-4 text-neutral-500">Loading…</p>
+                <p className="px-4 text-muted">Loading…</p>
             )}
             {mode === 'semantic' && modelStatus === 'loading' && (
-                <p className="px-4 text-neutral-500">
+                <p className="px-4 text-muted">
                     Loading AI model (one-time download)…
                 </p>
             )}
             {mode === 'semantic' && embedProgress && (
-                <p className="px-4 text-neutral-500">{embedProgress}</p>
+                <p className="px-4 text-muted">{embedProgress}</p>
             )}
             {mode === 'semantic' && modelStatus === 'error' && (
                 <p className="px-4 text-red-400">
@@ -209,7 +209,7 @@ export default function SearchView() {
             )}
             {mode === 'keyword' && allNotes !== undefined && query && (() => {
                 if (keywordResults.length === 0) {
-                    return <p className="px-4 text-neutral-500">No notes match your search.</p>;
+                    return <p className="px-4 text-muted">No notes match your search.</p>;
                 }
                 return (
                     <ul className="flex flex-col gap-2 px-4 pb-4">
@@ -219,7 +219,7 @@ export default function SearchView() {
             })()}
             {mode === 'semantic' && modelStatus === 'ready' && query && (() => {
                 if (semanticResults.length === 0) {
-                    return <p className="px-4 text-neutral-500">No semantically similar notes found.</p>;
+                    return <p className="px-4 text-muted">No semantically similar notes found.</p>;
                 }
                 return (
                     <ul className="flex flex-col gap-2 px-4 pb-4">

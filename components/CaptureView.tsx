@@ -131,7 +131,7 @@ export default function CaptureView() {
                 onChange={(e) => setText(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="What's on your mind?"
-                className="flex-1 resize-none rounded-xl bg-neutral-900 p-4 text-base text-white placeholder-neutral-500 outline-none focus:ring-2 focus:ring-neutral-600"
+                className="flex-1 resize-none rounded-xl bg-card p-4 text-note text-primary placeholder-muted outline-none focus:ring-2 focus:ring-ring"
                 aria-label="Note text"
             />
             <div className="flex items-center gap-3">
@@ -139,7 +139,7 @@ export default function CaptureView() {
                     onClick={handleMic}
                     aria-label={isListening ? 'Stop recording' : 'Start recording'}
                     aria-pressed={isListening}
-                    className={`min-h-[44px] min-w-[44px] rounded-xl text-xl transition-colors active:opacity-75 ${isListening ? 'bg-red-500 text-white' : 'bg-neutral-800 text-neutral-300'}`}
+                    className={`min-h-[44px] min-w-[44px] rounded-xl text-xl transition-colors active:opacity-75 ${isListening ? 'bg-red-500 text-white' : 'bg-elevated text-secondary'}`}
                 >
                     🎙
                 </button>
@@ -151,7 +151,7 @@ export default function CaptureView() {
                     Save
                 </button>
                 {saved && (
-                    <span className="text-sm text-neutral-400 animate-pulse" role="status">
+                    <span className="text-sm text-faint animate-pulse" role="status">
                         Saved
                     </span>
                 )}

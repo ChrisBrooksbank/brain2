@@ -122,14 +122,14 @@ export default function GoogleDriveSection() {
 
     return (
         <section className="flex flex-col gap-3">
-            <h2 className="text-sm font-medium text-neutral-400 uppercase tracking-wide">
+            <h2 className="text-sm font-medium text-faint uppercase tracking-wide">
                 Google Drive Backup
             </h2>
 
             {!savedClientId ? (
                 <>
                     <label
-                        className="text-sm text-neutral-300"
+                        className="text-sm text-secondary"
                         htmlFor="gdrive-client-id"
                     >
                         OAuth Client ID
@@ -140,7 +140,7 @@ export default function GoogleDriveSection() {
                         value={inputId}
                         onChange={(e) => setInputId(e.target.value)}
                         placeholder="123456789.apps.googleusercontent.com"
-                        className="min-h-[44px] rounded-xl bg-neutral-900 px-4 text-white placeholder-neutral-500 outline-none focus:ring-2 focus:ring-neutral-600"
+                        className="min-h-[44px] rounded-xl bg-card px-4 text-primary placeholder-muted outline-none focus:ring-2 focus:ring-ring"
                     />
                     <button
                         onClick={handleSaveClientId}
@@ -149,13 +149,13 @@ export default function GoogleDriveSection() {
                     >
                         Save
                     </button>
-                    <p className="text-xs text-neutral-500">
+                    <p className="text-xs text-muted">
                         Create an OAuth Client ID at{' '}
                         <a
                             href="https://console.cloud.google.com/apis/credentials"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="underline text-neutral-400"
+                            className="underline text-faint"
                         >
                             Google Cloud Console
                         </a>
@@ -167,22 +167,22 @@ export default function GoogleDriveSection() {
             ) : !isConnected && !isBusy ? (
                 <>
                     <div className="flex items-center justify-between">
-                        <span className="text-sm text-neutral-300">
+                        <span className="text-sm text-secondary">
                             Client ID saved
                         </span>
-                        <span className="text-xs text-neutral-500">
+                        <span className="text-xs text-muted">
                             Not connected
                         </span>
                     </div>
                     <button
                         onClick={handleConnect}
-                        className="min-h-[44px] rounded-xl bg-neutral-800 text-neutral-300 text-sm px-4 transition-opacity active:opacity-75 text-left"
+                        className="min-h-[44px] rounded-xl bg-elevated text-secondary text-sm px-4 transition-opacity active:opacity-75 text-left"
                     >
                         Connect to Google Drive
                     </button>
                     <button
                         onClick={handleClearClientId}
-                        className="min-h-[44px] rounded-xl bg-neutral-800 text-neutral-300 text-sm px-4 transition-opacity active:opacity-75 text-left"
+                        className="min-h-[44px] rounded-xl bg-elevated text-secondary text-sm px-4 transition-opacity active:opacity-75 text-left"
                     >
                         Clear Client ID
                     </button>
@@ -190,7 +190,7 @@ export default function GoogleDriveSection() {
             ) : (
                 <>
                     <div className="flex items-center justify-between">
-                        <span className="text-sm text-neutral-300">
+                        <span className="text-sm text-secondary">
                             Google Drive
                         </span>
                         <span className="text-xs font-medium text-green-400">
@@ -206,19 +206,19 @@ export default function GoogleDriveSection() {
                     <button
                         onClick={handleBackup}
                         disabled={isBusy}
-                        className="min-h-[44px] rounded-xl bg-neutral-800 text-neutral-300 text-sm px-4 transition-opacity disabled:opacity-30 active:opacity-75 text-left"
+                        className="min-h-[44px] rounded-xl bg-elevated text-secondary text-sm px-4 transition-opacity disabled:opacity-30 active:opacity-75 text-left"
                     >
                         {effectiveStatus === 'backing-up' ? 'Backing up...' : 'Backup Now'}
                     </button>
                     <button
                         onClick={handleRestore}
                         disabled={isBusy}
-                        className="min-h-[44px] rounded-xl bg-neutral-800 text-neutral-300 text-sm px-4 transition-opacity disabled:opacity-30 active:opacity-75 text-left"
+                        className="min-h-[44px] rounded-xl bg-elevated text-secondary text-sm px-4 transition-opacity disabled:opacity-30 active:opacity-75 text-left"
                     >
                         {effectiveStatus === 'restoring' ? 'Restoring...' : 'Restore from Backup'}
                     </button>
                     {lastBackup && (
-                        <p className="text-xs text-neutral-500">
+                        <p className="text-xs text-muted">
                             Last backup:{' '}
                             {new Date(lastBackup).toLocaleString()}
                         </p>
@@ -226,14 +226,14 @@ export default function GoogleDriveSection() {
                     <button
                         onClick={handleDisconnect}
                         disabled={isBusy}
-                        className="min-h-[44px] rounded-xl bg-neutral-800 text-neutral-300 text-sm px-4 transition-opacity disabled:opacity-30 active:opacity-75 text-left"
+                        className="min-h-[44px] rounded-xl bg-elevated text-secondary text-sm px-4 transition-opacity disabled:opacity-30 active:opacity-75 text-left"
                     >
                         Disconnect
                     </button>
                     <button
                         onClick={handleClearClientId}
                         disabled={isBusy}
-                        className="min-h-[44px] rounded-xl bg-neutral-800 text-neutral-300 text-sm px-4 transition-opacity disabled:opacity-30 active:opacity-75 text-left"
+                        className="min-h-[44px] rounded-xl bg-elevated text-secondary text-sm px-4 transition-opacity disabled:opacity-30 active:opacity-75 text-left"
                     >
                         Clear Client ID
                     </button>
@@ -242,7 +242,7 @@ export default function GoogleDriveSection() {
 
             {message && (
                 <span
-                    className="text-sm text-neutral-400"
+                    className="text-sm text-faint"
                     role="status"
                     aria-live="polite"
                 >
