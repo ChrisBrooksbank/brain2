@@ -36,6 +36,16 @@ export default function SearchView() {
         }
     }, [semanticEnabled, mode]);
 
+    // Reset semantic state when setting is disabled so re-enabling triggers fresh init
+    useEffect(() => {
+        if (semanticEnabled !== 'true') {
+            setModelStatus('idle');
+            initRunning.current = false;
+            setSemanticResults([]);
+            setEmbedProgress(null);
+        }
+    }, [semanticEnabled]);
+
     useEffect(() => {
         const timer = setTimeout(() => setQuery(input.trim()), 200);
         return () => clearTimeout(timer);
@@ -83,8 +93,8 @@ export default function SearchView() {
             const noteMap = new Map(allNotes.map((n) => [n.id, n]));
             setSemanticResults(
                 results
-                    .map((r) => ({ note: noteMap.get(r.noteId)!, score: r.score }))
-                    .filter((r) => r.note),
+                    .map((r) => ({ note: noteMap.get(r.noteId), score: r.score }))
+                    .filter((r): r is { note: Note; score: number } => r.note !== undefined),
             );
         })();
         return () => {

@@ -63,7 +63,10 @@ export async function archiveNote(id: number): Promise<void> {
 }
 
 export async function deleteNote(id: number): Promise<void> {
-    await db.notes.delete(id);
+    await db.transaction('rw', [db.notes, db.embeddings], async () => {
+        await db.notes.delete(id);
+        await db.embeddings.where('noteId').equals(id).delete();
+    });
 }
 
 // Embedding helpers

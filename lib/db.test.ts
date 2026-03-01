@@ -1,7 +1,7 @@
 import 'fake-indexeddb/auto';
 import { describe, it, expect, beforeEach } from 'vitest';
 import Dexie, { type EntityTable } from 'dexie';
-import { db, type Note, type Config, addNote, updateNote, archiveNote, deleteNote, getConfig, setConfig } from './db';
+import { db, type Note, type Config, addNote, updateNote, archiveNote, deleteNote, getConfig, setConfig, putEmbedding, getEmbedding } from './db';
 
 // Create a fresh DB instance per test file to avoid shared state issues
 class TestDB extends Dexie {
@@ -131,6 +131,7 @@ describe('mutation helpers', () => {
     beforeEach(async () => {
         await db.notes.clear();
         await db.config.clear();
+        await db.embeddings.clear();
     });
 
     it('addNote creates a note with default fields', async () => {
@@ -158,11 +159,14 @@ describe('mutation helpers', () => {
         expect(note!.archived).toBe(true);
     });
 
-    it('deleteNote removes the note', async () => {
+    it('deleteNote removes the note and its embedding', async () => {
         const id = await addNote('to delete');
+        await putEmbedding(id, [1, 2, 3]);
+        expect(await getEmbedding(id)).toBeDefined();
         await deleteNote(id);
         const note = await db.notes.get(id);
         expect(note).toBeUndefined();
+        expect(await getEmbedding(id)).toBeUndefined();
     });
 
     it('setConfig stores a value and getConfig retrieves it', async () => {
