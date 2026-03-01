@@ -9,6 +9,8 @@ import {
     isTokenValid,
     buildBackupPayload,
     deduplicateNotes,
+    validateBackup,
+    DriveApiError,
 } from './gdrive';
 import type { Note } from './db';
 
@@ -140,5 +142,109 @@ describe('deduplicateNotes', () => {
         const { toAdd, skipped } = deduplicateNotes(existing, incoming);
         expect(toAdd).toHaveLength(2);
         expect(skipped).toBe(1);
+    });
+});
+
+describe('validateBackup', () => {
+    const validBackup = {
+        version: 1,
+        createdAt: '2025-01-01T00:00:00.000Z',
+        notes: [
+            {
+                id: 1,
+                text: 'Hello',
+                tags: ['test'],
+                createdAt: '2025-01-01T00:00:00.000Z',
+                archived: false,
+            },
+        ],
+        embeddings: [{ id: 1, noteId: 1, vector: [0.1, 0.2] }],
+    };
+
+    it('accepts a valid backup', () => {
+        const result = validateBackup(validBackup);
+        expect(result.version).toBe(1);
+        expect(result.notes).toHaveLength(1);
+    });
+
+    it('accepts a backup with no embeddings field', () => {
+        const { embeddings: _, ...noEmb } = validBackup;
+        void _;
+        const result = validateBackup(noEmb);
+        expect(result.notes).toHaveLength(1);
+    });
+
+    it('rejects null', () => {
+        expect(() => validateBackup(null)).toThrow('not an object');
+    });
+
+    it('rejects wrong version', () => {
+        expect(() => validateBackup({ ...validBackup, version: 2 })).toThrow(
+            'Unsupported backup version',
+        );
+    });
+
+    it('rejects non-array notes', () => {
+        expect(() =>
+            validateBackup({ ...validBackup, notes: 'not array' }),
+        ).toThrow('notes is not an array');
+    });
+
+    it('rejects note with missing text', () => {
+        expect(() =>
+            validateBackup({
+                ...validBackup,
+                notes: [{ id: 1, tags: [], createdAt: '2025-01-01', archived: false }],
+            }),
+        ).toThrow('invalid text');
+    });
+
+    it('rejects note with non-array tags', () => {
+        expect(() =>
+            validateBackup({
+                ...validBackup,
+                notes: [
+                    {
+                        id: 1,
+                        text: 'Hi',
+                        tags: 'not-array',
+                        createdAt: '2025-01-01',
+                        archived: false,
+                    },
+                ],
+            }),
+        ).toThrow('invalid tags');
+    });
+
+    it('rejects note with missing archived', () => {
+        expect(() =>
+            validateBackup({
+                ...validBackup,
+                notes: [
+                    {
+                        id: 1,
+                        text: 'Hi',
+                        tags: [],
+                        createdAt: '2025-01-01',
+                    },
+                ],
+            }),
+        ).toThrow('invalid archived');
+    });
+
+    it('rejects non-array embeddings', () => {
+        expect(() =>
+            validateBackup({ ...validBackup, embeddings: 'bad' }),
+        ).toThrow('embeddings is not an array');
+    });
+});
+
+describe('DriveApiError', () => {
+    it('carries status code', () => {
+        const err = new DriveApiError('Not found', 404);
+        expect(err).toBeInstanceOf(Error);
+        expect(err).toBeInstanceOf(DriveApiError);
+        expect(err.status).toBe(404);
+        expect(err.message).toBe('Not found');
     });
 });

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useConfigValue } from '@/hooks/useConfigValue';
 import { setConfig, db } from '@/lib/db';
 import {
@@ -22,14 +22,28 @@ export default function GoogleDriveSection() {
     const savedClientId = useConfigValue(CLIENT_ID_KEY, '');
     const lastBackup = useConfigValue(LAST_BACKUP_KEY, '');
     const [inputId, setInputId] = useState('');
-    const [status, setStatus] = useState<Status>(() =>
-        isTokenValid() ? 'connected' : 'idle',
-    );
+    const [status, setStatus] = useState<Status>('idle');
     const [message, setMessage] = useState<string | null>(null);
+    const messageTimer = useRef<ReturnType<typeof setTimeout>>(null);
+
+    // Derive connected status: when we have a client ID and valid token,
+    // treat idle as connected (#9). Avoids setState-in-effect.
+    const effectiveStatus: Status =
+        status === 'idle' && savedClientId && isTokenValid()
+            ? 'connected'
+            : status;
+
+    // Clean up message timer on unmount (#5)
+    useEffect(() => {
+        return () => {
+            if (messageTimer.current) clearTimeout(messageTimer.current);
+        };
+    }, []);
 
     const showMessage = (msg: string) => {
+        if (messageTimer.current) clearTimeout(messageTimer.current);
         setMessage(msg);
-        setTimeout(() => setMessage(null), 5000);
+        messageTimer.current = setTimeout(() => setMessage(null), 5000);
     };
 
     const handleSaveClientId = useCallback(async () => {
@@ -100,11 +114,11 @@ export default function GoogleDriveSection() {
         }
     }, [savedClientId]);
 
-    const isConnected = status === 'connected';
+    const isConnected = effectiveStatus === 'connected';
     const isBusy =
-        status === 'connecting' ||
-        status === 'backing-up' ||
-        status === 'restoring';
+        effectiveStatus === 'connecting' ||
+        effectiveStatus === 'backing-up' ||
+        effectiveStatus === 'restoring';
 
     return (
         <section className="flex flex-col gap-3">
@@ -180,11 +194,11 @@ export default function GoogleDriveSection() {
                             Google Drive
                         </span>
                         <span className="text-xs font-medium text-green-400">
-                            {status === 'connecting'
+                            {effectiveStatus === 'connecting'
                                 ? 'Connecting...'
-                                : status === 'backing-up'
+                                : effectiveStatus === 'backing-up'
                                   ? 'Backing up...'
-                                  : status === 'restoring'
+                                  : effectiveStatus === 'restoring'
                                     ? 'Restoring...'
                                     : 'Connected'}
                         </span>
@@ -194,14 +208,14 @@ export default function GoogleDriveSection() {
                         disabled={isBusy}
                         className="min-h-[44px] rounded-xl bg-neutral-800 text-neutral-300 text-sm px-4 transition-opacity disabled:opacity-30 active:opacity-75 text-left"
                     >
-                        {status === 'backing-up' ? 'Backing up...' : 'Backup Now'}
+                        {effectiveStatus === 'backing-up' ? 'Backing up...' : 'Backup Now'}
                     </button>
                     <button
                         onClick={handleRestore}
                         disabled={isBusy}
                         className="min-h-[44px] rounded-xl bg-neutral-800 text-neutral-300 text-sm px-4 transition-opacity disabled:opacity-30 active:opacity-75 text-left"
                     >
-                        {status === 'restoring' ? 'Restoring...' : 'Restore from Backup'}
+                        {effectiveStatus === 'restoring' ? 'Restoring...' : 'Restore from Backup'}
                     </button>
                     {lastBackup && (
                         <p className="text-xs text-neutral-500">
