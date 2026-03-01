@@ -1,7 +1,7 @@
 'use client';
 
 import { useLiveQuery } from 'dexie-react-hooks';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { db, type Note } from '@/lib/db';
 import { relativeTime } from '@/lib/utils';
@@ -39,7 +39,10 @@ export default function SearchView() {
         setQuery(target);
     };
 
+    const initRunning = useRef(false);
     const initSemanticMode = useCallback(async () => {
+        if (initRunning.current) return;
+        initRunning.current = true;
         setModelStatus('loading');
         try {
             const { generateEmbedding, embedAllUnembedded } = await import('@/lib/embeddings');
@@ -55,6 +58,7 @@ export default function SearchView() {
         } catch {
             setModelStatus('error');
             setMode('keyword');
+            initRunning.current = false;
         }
     }, []);
 
@@ -86,10 +90,13 @@ export default function SearchView() {
         }
     };
 
-    const keywordResults =
-        allNotes && query
-            ? allNotes.filter((n) => n.text.toLowerCase().includes(query.toLowerCase()))
-            : [];
+    const keywordResults = useMemo(
+        () =>
+            allNotes && query
+                ? allNotes.filter((n) => n.text.toLowerCase().includes(query.toLowerCase()))
+                : [],
+        [allNotes, query],
+    );
 
     const renderNote = (note: Note, score?: number) => (
         <li key={note.id} className="rounded-xl bg-neutral-900 p-4">

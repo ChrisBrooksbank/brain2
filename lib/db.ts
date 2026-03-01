@@ -69,12 +69,14 @@ export async function deleteNote(id: number): Promise<void> {
 // Embedding helpers
 
 export async function putEmbedding(noteId: number, vector: number[]): Promise<void> {
-    const existing = await db.embeddings.where('noteId').equals(noteId).first();
-    if (existing) {
-        await db.embeddings.update(existing.id, { vector });
-    } else {
-        await db.embeddings.add({ noteId, vector } as Embedding);
-    }
+    await db.transaction('rw', db.embeddings, async () => {
+        const existing = await db.embeddings.where('noteId').equals(noteId).first();
+        if (existing) {
+            await db.embeddings.update(existing.id, { vector });
+        } else {
+            await db.embeddings.add({ noteId, vector } as Embedding);
+        }
+    });
 }
 
 export async function getEmbedding(noteId: number): Promise<Embedding | undefined> {

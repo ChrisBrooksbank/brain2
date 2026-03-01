@@ -1,7 +1,7 @@
 'use client';
 
 import { useLiveQuery } from 'dexie-react-hooks';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { db, archiveNote, deleteNote } from '@/lib/db';
 import { relativeTime, truncate } from '@/lib/utils';
@@ -18,6 +18,11 @@ export default function NotesView() {
     const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
     const [selectedTag, setSelectedTag] = useState<string | null>(null);
 
+    const allTags = useMemo(
+        () => Array.from(new Set((notes ?? []).flatMap((n) => n.tags))).sort(),
+        [notes],
+    );
+
     if (notes === undefined) {
         return <p className="p-4 text-neutral-500">Loading…</p>;
     }
@@ -26,7 +31,6 @@ export default function NotesView() {
         return <p className="p-4 text-neutral-500">No notes yet.</p>;
     }
 
-    const allTags = Array.from(new Set(notes.flatMap((n) => n.tags))).sort();
     const filteredNotes = selectedTag ? notes.filter((n) => n.tags.includes(selectedTag)) : notes;
 
     return (

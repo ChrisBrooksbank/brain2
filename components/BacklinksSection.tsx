@@ -20,8 +20,9 @@ export default function BacklinksSection({ noteId, noteText, onNavigate }: Backl
     const backlinks = useLiveQuery(async () => {
         if (!title) return [];
         const target = `[[${title}]]`.toLowerCase();
-        const all = await db.notes.toArray();
-        return all.filter((n) => n.id !== noteId && n.text.toLowerCase().includes(target));
+        return db.notes
+            .filter((n) => n.id !== noteId && n.text.toLowerCase().includes(target))
+            .toArray();
     }, [noteId, title]);
 
     if (!backlinks || backlinks.length === 0) return null;

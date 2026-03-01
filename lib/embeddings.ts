@@ -34,6 +34,8 @@ export function cosineSimilarity(a: number[], b: number[]): number {
 export async function embedNote(noteId: number, text: string): Promise<void> {
     try {
         const vector = await generateEmbedding(text);
+        const note = await db.notes.get(noteId);
+        if (!note) return;
         await putEmbedding(noteId, vector);
     } catch {
         // Silent failure — same pattern as autoTagNote
