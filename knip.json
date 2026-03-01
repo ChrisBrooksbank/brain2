@@ -12,6 +12,8 @@
         "serwist",
         "@testing-library/react",
         "tailwindcss",
-        "postcss"
+        "postcss",
+        "@huggingface/transformers",
+        "@testing-library/user-event"
     ]
 }

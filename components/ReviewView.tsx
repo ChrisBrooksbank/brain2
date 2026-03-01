@@ -2,9 +2,12 @@
 
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { db, archiveNote } from '@/lib/db';
+import NoteText from './NoteText';
 
 export default function ReviewView() {
+    const router = useRouter();
     const [keptIds, setKeptIds] = useState<number[]>([]);
 
     // Shuffle and slice happen inside useLiveQuery (outside React render purity constraints)
@@ -39,7 +42,12 @@ export default function ReviewView() {
         <ul className="flex flex-col gap-2 p-4 animate-page-enter">
             {visibleNotes.map((note) => (
                 <li key={note.id} className="rounded-xl bg-neutral-900 p-4">
-                    <p className="whitespace-pre-wrap break-words">{note.text}</p>
+                    <p className="whitespace-pre-wrap break-words">
+                        <NoteText
+                            text={note.text}
+                            onWikiLinkClick={(target) => router.push(`/search?q=${encodeURIComponent(target)}`)}
+                        />
+                    </p>
                     {note.tags.length > 0 && (
                         <div className="mt-2 flex flex-wrap gap-1">
                             {note.tags.map((tag) => (

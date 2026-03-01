@@ -3,6 +3,7 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { addNote } from '@/lib/db';
 import { autoTagNote } from '@/lib/ai';
+import { embedNote } from '@/lib/embeddings';
 
 export default function CaptureView() {
     const [text, setText] = useState('');
@@ -29,6 +30,7 @@ export default function CaptureView() {
         if (!trimmed) return;
         const id = await addNote(trimmed);
         void autoTagNote(id, trimmed);
+        void embedNote(id, trimmed);
         navigator.vibrate?.(10);
         setText('');
         setSaved(true);

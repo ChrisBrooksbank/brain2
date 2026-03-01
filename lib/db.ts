@@ -19,10 +19,17 @@ export interface Backup {
     notes: Note[];
 }
 
+export interface Embedding {
+    id: number;
+    noteId: number;
+    vector: number[];
+}
+
 class Brain2DB extends Dexie {
     notes!: EntityTable<Note, 'id'>;
     config!: EntityTable<Config, 'key'>;
     backups!: EntityTable<Backup, 'id'>;
+    embeddings!: EntityTable<Embedding, 'id'>;
 
     constructor() {
         super('brain2');
@@ -32,6 +39,9 @@ class Brain2DB extends Dexie {
         });
         this.version(2).stores({
             backups: '++id, createdAt',
+        });
+        this.version(3).stores({
+            embeddings: '++id, noteId',
         });
     }
 }
@@ -54,6 +64,29 @@ export async function archiveNote(id: number): Promise<void> {
 
 export async function deleteNote(id: number): Promise<void> {
     await db.notes.delete(id);
+}
+
+// Embedding helpers
+
+export async function putEmbedding(noteId: number, vector: number[]): Promise<void> {
+    const existing = await db.embeddings.where('noteId').equals(noteId).first();
+    if (existing) {
+        await db.embeddings.update(existing.id, { vector });
+    } else {
+        await db.embeddings.add({ noteId, vector } as Embedding);
+    }
+}
+
+export async function getEmbedding(noteId: number): Promise<Embedding | undefined> {
+    return db.embeddings.where('noteId').equals(noteId).first();
+}
+
+export async function deleteEmbedding(noteId: number): Promise<void> {
+    await db.embeddings.where('noteId').equals(noteId).delete();
+}
+
+export async function getAllEmbeddings(): Promise<Embedding[]> {
+    return db.embeddings.toArray();
 }
 
 // Config helpers

@@ -2,10 +2,14 @@
 
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { db, archiveNote, deleteNote } from '@/lib/db';
 import { relativeTime, truncate } from '@/lib/utils';
+import NoteText from './NoteText';
+import BacklinksSection from './BacklinksSection';
 
 export default function NotesView() {
+    const router = useRouter();
     const notes = useLiveQuery(
         () => db.notes.orderBy('createdAt').reverse().filter((n) => !n.archived).toArray(),
         [],
@@ -58,7 +62,14 @@ export default function NotesView() {
                             aria-label={isExpanded ? 'Collapse note' : 'Expand note'}
                         >
                             <p className={isExpanded ? 'whitespace-pre-wrap break-words' : 'line-clamp-3'}>
-                                {isExpanded ? note.text : truncate(note.text, 120)}
+                                {isExpanded ? (
+                                    <NoteText
+                                        text={note.text}
+                                        onWikiLinkClick={(target) => router.push(`/search?q=${encodeURIComponent(target)}`)}
+                                    />
+                                ) : (
+                                    truncate(note.text, 120)
+                                )}
                             </p>
                             <span className="mt-1 block text-xs text-neutral-500">
                                 {relativeTime(note.createdAt)}
@@ -75,6 +86,13 @@ export default function NotesView() {
                                     </span>
                                 ))}
                             </div>
+                        )}
+                        {isExpanded && (
+                            <BacklinksSection
+                                noteId={note.id}
+                                noteText={note.text}
+                                onNavigate={(target) => router.push(`/search?q=${encodeURIComponent(target)}`)}
+                            />
                         )}
                         <div className="mt-3 flex gap-2">
                             <button

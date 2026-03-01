@@ -2,6 +2,11 @@ import { render, screen, fireEvent, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import SearchView from './SearchView';
 
+const stableSearchParams = new URLSearchParams();
+vi.mock('next/navigation', () => ({
+    useSearchParams: () => stableSearchParams,
+}));
+
 vi.mock('dexie-react-hooks', () => ({
     useLiveQuery: vi.fn(),
 }));
