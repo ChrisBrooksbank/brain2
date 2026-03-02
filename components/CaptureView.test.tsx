@@ -4,15 +4,17 @@ import CaptureView from './CaptureView';
 
 vi.mock('@/lib/db', () => ({
     addNote: vi.fn().mockResolvedValue(1),
+    updateNote: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock('@/lib/ai', () => ({
     autoTagNote: vi.fn().mockResolvedValue(undefined),
 }));
 
-import { addNote } from '@/lib/db';
+import { addNote, updateNote } from '@/lib/db';
 import { autoTagNote } from '@/lib/ai';
 const mockAddNote = vi.mocked(addNote);
+const mockUpdateNote = vi.mocked(updateNote);
 const mockAutoTagNote = vi.mocked(autoTagNote);
 
 function makeMockRecognition() {
@@ -62,6 +64,7 @@ function makeMockRecognition() {
 
 beforeEach(() => {
     mockAddNote.mockClear();
+    mockUpdateNote.mockClear();
     mockAutoTagNote.mockClear();
     // Remove any SpeechRecognition mock between tests
     delete (window as unknown as Record<string, unknown>).SpeechRecognition;
@@ -112,6 +115,32 @@ describe('CaptureView', () => {
             fireEvent.click(screen.getByRole('button', { name: /save/i }));
         });
         await waitFor(() => expect(mockAutoTagNote).toHaveBeenCalledWith(42, 'tag this note'));
+    });
+
+    it('extracts hashtags and saves them as tags on save', async () => {
+        mockAddNote.mockResolvedValue(10);
+        render(<CaptureView />);
+        fireEvent.change(screen.getByRole('textbox'), {
+            target: { value: 'working on #project and #ideas' },
+        });
+        await act(async () => {
+            fireEvent.click(screen.getByRole('button', { name: /save/i }));
+        });
+        expect(mockUpdateNote).toHaveBeenCalledWith(10, {
+            tags: ['project', 'ideas'],
+        });
+    });
+
+    it('does not call updateNote for tags when no hashtags present', async () => {
+        mockAddNote.mockResolvedValue(11);
+        render(<CaptureView />);
+        fireEvent.change(screen.getByRole('textbox'), {
+            target: { value: 'no tags here' },
+        });
+        await act(async () => {
+            fireEvent.click(screen.getByRole('button', { name: /save/i }));
+        });
+        expect(mockUpdateNote).not.toHaveBeenCalled();
     });
 
     it('clears textarea after save', async () => {

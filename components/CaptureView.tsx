@@ -1,9 +1,10 @@
 'use client';
 
 import { useRef, useState, useEffect, useCallback } from 'react';
-import { addNote } from '@/lib/db';
+import { addNote, updateNote } from '@/lib/db';
 import { autoTagNote } from '@/lib/ai';
 import { embedNote } from '@/lib/embeddings';
+import { extractHashtags } from '@/lib/hashtags';
 
 export default function CaptureView() {
     const [text, setText] = useState('');
@@ -28,7 +29,11 @@ export default function CaptureView() {
     const handleSave = useCallback(async () => {
         const trimmed = text.trim();
         if (!trimmed) return;
+        const hashtags = extractHashtags(trimmed);
         const id = await addNote(trimmed);
+        if (hashtags.length > 0) {
+            await updateNote(id, { tags: hashtags });
+        }
         void autoTagNote(id, trimmed);
         void embedNote(id, trimmed);
         navigator.vibrate?.(10);
@@ -130,7 +135,7 @@ export default function CaptureView() {
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="What's on your mind?"
+                placeholder="What's on your mind? Use [[links]] and #tags"
                 className="flex-1 resize-none rounded-xl bg-card p-4 text-note text-primary placeholder-muted outline-none focus:ring-2 focus:ring-ring"
                 aria-label="Note text"
             />

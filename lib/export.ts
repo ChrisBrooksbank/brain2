@@ -1,5 +1,6 @@
 import JSZip from 'jszip';
 import { type Note } from '@/lib/db';
+import { extractHashtags } from '@/lib/hashtags';
 
 /** Generate YAML frontmatter + body markdown for a note */
 export function noteToMarkdown(note: Note): string {
@@ -88,10 +89,7 @@ export function parseMarkdownNote(content: string): ParsedNote {
     }
 
     // Merge in any #hashtags found in the body
-    const bodyTags = (text.match(/#([a-zA-Z][a-zA-Z0-9_-]*)/g) ?? []).map((t) =>
-        t.slice(1).toLowerCase(),
-    );
-    for (const tag of bodyTags) {
+    for (const tag of extractHashtags(text)) {
         if (!tags.includes(tag)) {
             tags.push(tag);
         }

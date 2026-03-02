@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { db, archiveNote, deleteNote, updateNote } from '@/lib/db';
 import { autoTagNote } from '@/lib/ai';
 import { embedNote } from '@/lib/embeddings';
+import { extractHashtags } from '@/lib/hashtags';
 import { relativeTime, truncate } from '@/lib/utils';
 import NoteText from './NoteText';
 import BacklinksSection from './BacklinksSection';
@@ -31,7 +32,8 @@ export default function NotesView() {
         if (editingId === null) return;
         const trimmed = editText.trim();
         if (!trimmed) return;
-        await updateNote(editingId, { text: trimmed });
+        const hashtags = extractHashtags(trimmed);
+        await updateNote(editingId, { text: trimmed, tags: hashtags });
         void autoTagNote(editingId, trimmed);
         void embedNote(editingId, trimmed);
         setEditingId(null);

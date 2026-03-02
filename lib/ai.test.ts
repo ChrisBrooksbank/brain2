@@ -1,7 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { autoTagNote } from './ai';
 
+const mockNotesGet = vi.fn();
 vi.mock('@/lib/db', () => ({
+    db: { notes: { get: (...args: unknown[]) => mockNotesGet(...args) } },
     getConfig: vi.fn(),
     updateNote: vi.fn(),
 }));
@@ -24,6 +26,8 @@ beforeEach(() => {
     mockGetConfig.mockReset();
     mockUpdateNote.mockReset();
     mockFetch.mockReset();
+    mockNotesGet.mockReset();
+    mockNotesGet.mockResolvedValue({ tags: [] });
 });
 
 describe('autoTagNote', () => {
@@ -94,6 +98,21 @@ describe('autoTagNote', () => {
 
         await expect(autoTagNote(1, 'some text')).resolves.toBeUndefined();
         expect(mockUpdateNote).not.toHaveBeenCalled();
+    });
+
+    it('merges AI tags with existing hashtag-extracted tags', async () => {
+        mockGetConfig.mockResolvedValue('sk-test-key');
+        mockFetch.mockReturnValue(
+            makeResponse(true, { content: [{ text: '["ai-tag","overlap"]' }] }),
+        );
+        mockUpdateNote.mockResolvedValue(undefined);
+        mockNotesGet.mockResolvedValue({ tags: ['overlap', 'hashtag'] });
+
+        await autoTagNote(5, 'some text');
+
+        expect(mockUpdateNote).toHaveBeenCalledWith(5, {
+            tags: ['overlap', 'hashtag', 'ai-tag'],
+        });
     });
 
     it('does not update when the response tags are not an array of strings', async () => {

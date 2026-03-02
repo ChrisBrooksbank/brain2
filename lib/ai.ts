@@ -1,4 +1,4 @@
-import { getConfig, updateNote } from '@/lib/db';
+import { db, getConfig, updateNote } from '@/lib/db';
 
 const API_KEY_CONFIG = 'anthropic_api_key';
 
@@ -33,7 +33,11 @@ export async function autoTagNote(noteId: number, text: string): Promise<void> {
         const content = data.content?.[0]?.text ?? '';
         const tags: unknown = JSON.parse(content);
         if (Array.isArray(tags) && tags.every((t) => typeof t === 'string')) {
-            await updateNote(noteId, { tags: tags.map((t: string) => t.toLowerCase()) });
+            const aiTags = tags.map((t: string) => t.toLowerCase());
+            const note = await db.notes.get(noteId);
+            const existing = note?.tags ?? [];
+            const merged = Array.from(new Set([...existing, ...aiTags]));
+            await updateNote(noteId, { tags: merged });
         }
     } catch {
         // fire-and-forget: silently ignore all errors
