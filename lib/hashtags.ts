@@ -1,4 +1,4 @@
-const HASHTAG_RE = /#([a-zA-Z][a-zA-Z0-9_-]*)/g;
+const HASHTAG_RE = /#[a-zA-Z][a-zA-Z0-9_-]*/g;
 
 export function extractHashtags(text: string): string[] {
     const matches = text.match(HASHTAG_RE) ?? [];

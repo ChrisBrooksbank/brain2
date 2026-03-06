@@ -33,12 +33,14 @@ export default function NotesView() {
         const trimmed = editText.trim();
         if (!trimmed) return;
         const hashtags = extractHashtags(trimmed);
-        await updateNote(editingId, { text: trimmed, tags: hashtags });
+        const existing = notes?.find((n) => n.id === editingId)?.tags ?? [];
+        const merged = Array.from(new Set([...existing, ...hashtags]));
+        await updateNote(editingId, { text: trimmed, tags: merged });
         void autoTagNote(editingId, trimmed);
         void embedNote(editingId, trimmed);
         setEditingId(null);
         setEditText('');
-    }, [editingId, editText]);
+    }, [editingId, editText, notes]);
 
     const handleCancelEdit = useCallback(() => {
         setEditingId(null);

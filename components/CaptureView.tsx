@@ -32,7 +32,7 @@ export default function CaptureView() {
         const hashtags = extractHashtags(trimmed);
         const id = await addNote(trimmed);
         if (hashtags.length > 0) {
-            await updateNote(id, { tags: hashtags });
+            void updateNote(id, { tags: hashtags });
         }
         void autoTagNote(id, trimmed);
         void embedNote(id, trimmed);
