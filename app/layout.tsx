@@ -4,6 +4,7 @@ import BottomNav from '@/components/BottomNav';
 import BackupProvider from '@/components/BackupProvider';
 import FontSizeProvider from '@/components/FontSizeProvider';
 import ThemeProvider from '@/components/ThemeProvider';
+import OfflineIndicator from '@/components/OfflineIndicator';
 import './globals.css';
 
 const geistSans = Geist({
@@ -42,6 +43,7 @@ export default function RootLayout({
                 <BackupProvider />
                 <FontSizeProvider />
                 <ThemeProvider />
+                <OfflineIndicator />
                 <main className="flex-1 overflow-y-auto scroll-smooth">{children}</main>
                 <BottomNav />
             </body>
