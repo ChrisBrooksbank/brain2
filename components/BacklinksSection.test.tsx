@@ -11,18 +11,13 @@ vi.mock('@/lib/db', () => ({
 }));
 
 vi.mock('@/lib/utils', () => ({
-    truncate: (text: string, max: number) =>
-        text.length <= max ? text : text.slice(0, max) + '…',
+    truncate: (text: string, max: number) => (text.length <= max ? text : text.slice(0, max) + '…'),
 }));
 
 describe('BacklinksSection', () => {
     it('renders nothing when no backlinks exist', () => {
         const { container } = render(
-            <BacklinksSection
-                noteId={1}
-                noteText="My Title\nSome content"
-                onNavigate={vi.fn()}
-            />,
+            <BacklinksSection noteId={1} noteText="My Title\nSome content" onNavigate={vi.fn()} />
         );
         expect(container.innerHTML).toBe('');
     });

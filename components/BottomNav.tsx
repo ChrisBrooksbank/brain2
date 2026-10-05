@@ -26,9 +26,7 @@ export default function BottomNav() {
                         key={href}
                         href={href}
                         className={`flex flex-1 flex-col items-center justify-center gap-0.5 min-h-[44px] text-xs transition-colors active:opacity-60 ${
-                            isActive
-                                ? 'text-primary'
-                                : 'text-muted hover:text-secondary'
+                            isActive ? 'text-primary' : 'text-muted hover:text-secondary'
                         }`}
                         aria-current={isActive ? 'page' : undefined}
                     >

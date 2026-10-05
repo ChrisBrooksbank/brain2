@@ -7,3 +7,7 @@ build/
 pnpm-lock.yaml
 package-lock.json
 yarn.lock
+
+# Generated files
+public/sw.js
+next-env.d.ts

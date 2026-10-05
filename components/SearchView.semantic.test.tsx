@@ -48,7 +48,11 @@ describe('SearchView semantic mode', () => {
         await act(async () => {
             fireEvent.click(screen.getByRole('button', { name: 'Semantic' }));
         });
-        expect(await screen.findByText(/no semantically similar notes/i)).toBeInTheDocument();
+        // Generous timeouts: the model warm-up path goes through a dynamic import,
+        // which can exceed findBy*'s 1s default on a loaded machine.
+        expect(
+            await screen.findByText(/no semantically similar notes/i, {}, { timeout: 5000 })
+        ).toBeInTheDocument();
 
         // Background embedding finishes; the embeddings live query changes
         semanticSearch.mockResolvedValue([{ noteId: 1, score: 0.8 }]);
@@ -56,7 +60,9 @@ describe('SearchView semantic mode', () => {
         await act(async () => {
             rerender(<SearchView />);
         });
-        expect(await screen.findByText('Rest well for deep work')).toBeInTheDocument();
+        expect(
+            await screen.findByText('Rest well for deep work', {}, { timeout: 5000 })
+        ).toBeInTheDocument();
         expect(screen.getByText('80%')).toBeInTheDocument();
     });
 });
