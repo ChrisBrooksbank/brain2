@@ -1,13 +1,16 @@
 import { render, screen, fireEvent, act } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import SearchView from './SearchView';
 
+// Next.js returns the same object until the URL changes, so the mock must be stable too
+let searchParams = new URLSearchParams('q=sleep');
 vi.mock('next/navigation', () => ({
-    useSearchParams: () => new URLSearchParams('q=sleep'),
+    useSearchParams: () => searchParams,
 }));
 
+let semanticEnabled = 'true';
 vi.mock('@/hooks/useConfigValue', () => ({
-    useConfigValue: () => 'true', // semantic search enabled
+    useConfigValue: () => semanticEnabled,
 }));
 
 const notes = [
@@ -40,6 +43,12 @@ vi.mock('@/lib/embeddings', () => ({
     semanticSearch: (...args: unknown[]) => semanticSearch(...args),
 }));
 
+beforeEach(() => {
+    searchParams = new URLSearchParams('q=sleep');
+    semanticEnabled = 'true';
+    embeddingCount = 0;
+});
+
 describe('SearchView semantic mode', () => {
     it('re-runs the search once background embeddings are stored', async () => {
         // Nothing is embedded yet when the model first becomes ready
@@ -64,5 +73,38 @@ describe('SearchView semantic mode', () => {
             await screen.findByText('Rest well for deep work', {}, { timeout: 5000 })
         ).toBeInTheDocument();
         expect(screen.getByText('80%')).toBeInTheDocument();
+    });
+
+    it('falls back to keyword mode when semantic search is disabled', async () => {
+        semanticSearch.mockResolvedValue([]);
+        const { rerender } = render(<SearchView />);
+        await act(async () => {
+            fireEvent.click(screen.getByRole('button', { name: 'Semantic' }));
+        });
+        expect(
+            await screen.findByText(/no semantically similar notes/i, {}, { timeout: 5000 })
+        ).toBeInTheDocument();
+
+        semanticEnabled = 'false';
+        await act(async () => {
+            rerender(<SearchView />);
+        });
+        expect(screen.queryByRole('button', { name: 'Semantic' })).not.toBeInTheDocument();
+        expect(screen.queryByText(/no semantically similar notes/i)).not.toBeInTheDocument();
+        // keyword search for "sleep" runs instead
+        expect(screen.getByText(/no notes match your search/i)).toBeInTheDocument();
+    });
+});
+
+describe('SearchView URL sync', () => {
+    it('updates the search input when the URL query changes', async () => {
+        const { rerender } = render(<SearchView />);
+        expect(screen.getByLabelText('Search notes')).toHaveValue('sleep');
+
+        searchParams = new URLSearchParams('q=Deep work');
+        await act(async () => {
+            rerender(<SearchView />);
+        });
+        expect(screen.getByLabelText('Search notes')).toHaveValue('Deep work');
     });
 });
