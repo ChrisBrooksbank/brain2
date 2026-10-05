@@ -30,7 +30,6 @@
         ]
     },
     "dependencies": {
-        "@anthropic-ai/sdk": "^0.78.0",
         "@huggingface/transformers": "^4.3.0",
         "@serwist/next": "^9.5.13",
         "dexie": "^4.3.0",

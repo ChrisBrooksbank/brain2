@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-brain2 — a local-first second brain PWA. Markdown notes with Obsidian-compatible format, offline semantic search via in-browser neural embeddings (Transformers.js), optional Google Docs backup, and optional AI auto-tagging with Anthropic SDK.
+brain2 — a local-first second brain PWA. Markdown notes with Obsidian-compatible format, offline semantic search via in-browser neural embeddings (Transformers.js), optional Google Drive backup, and optional AI auto-tagging via the Claude API (BYOK).
 
 **Live:** https://brain2-app.netlify.app
 
@@ -12,7 +12,6 @@ brain2 — a local-first second brain PWA. Markdown notes with Obsidian-compatib
 - @huggingface/transformers — runs embedding models in-browser via WebAssembly
 - Dexie (IndexedDB wrapper)
 - @serwist/next (PWA service worker)
-- @anthropic-ai/sdk (optional AI features)
 - ESLint + Prettier + Husky + Knip
 - Vitest (unit tests) + Playwright (e2e)
 - Deployed on Netlify
@@ -43,9 +42,10 @@ npm run knip         # Find unused exports
 ## Key Technical Notes
 
 - Transformers.js loads ML models lazily on first search. The initial load may take several seconds.
-- Embeddings are computed in a Web Worker to avoid blocking the UI.
+- Embeddings are computed on the main thread (ONNX Runtime WASM); notes are embedded one at a time in the background.
+- AI auto-tagging calls the Anthropic Messages API directly from the browser with `fetch` (no SDK).
 - All notes and embeddings are stored in IndexedDB via Dexie.
-- The PWA service worker (Serwist) caches the app shell and model files for offline use.
+- The PWA service worker (Serwist) caches the app shell for offline use. Transformers.js caches the model and its WASM runtime in Cache Storage (`transformers-cache`), so semantic search works offline after first use.
 
 ## Deployment
 
