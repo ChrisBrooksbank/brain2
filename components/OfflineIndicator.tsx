@@ -1,21 +1,22 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useSyncExternalStore } from 'react';
+
+function subscribe(onChange: () => void) {
+    window.addEventListener('offline', onChange);
+    window.addEventListener('online', onChange);
+    return () => {
+        window.removeEventListener('offline', onChange);
+        window.removeEventListener('online', onChange);
+    };
+}
+
+const getSnapshot = () => !navigator.onLine;
+// Assume online during server render; the client snapshot takes over on hydration.
+const getServerSnapshot = () => false;
 
 export default function OfflineIndicator() {
-    const [offline, setOffline] = useState(false);
-
-    useEffect(() => {
-        setOffline(!navigator.onLine);
-        const handleOffline = () => setOffline(true);
-        const handleOnline = () => setOffline(false);
-        window.addEventListener('offline', handleOffline);
-        window.addEventListener('online', handleOnline);
-        return () => {
-            window.removeEventListener('offline', handleOffline);
-            window.removeEventListener('online', handleOnline);
-        };
-    }, []);
+    const offline = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
     if (!offline) return null;
 

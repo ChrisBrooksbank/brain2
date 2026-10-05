@@ -1,7 +1,19 @@
 import 'fake-indexeddb/auto';
 import { describe, it, expect, beforeEach } from 'vitest';
 import Dexie, { type EntityTable } from 'dexie';
-import { db, type Note, type Config, addNote, updateNote, archiveNote, deleteNote, getConfig, setConfig, putEmbedding, getEmbedding } from './db';
+import {
+    db,
+    type Note,
+    type Config,
+    addNote,
+    updateNote,
+    archiveNote,
+    deleteNote,
+    getConfig,
+    setConfig,
+    putEmbedding,
+    getEmbedding,
+} from './db';
 
 // Create a fresh DB instance per test file to avoid shared state issues
 class TestDB extends Dexie {

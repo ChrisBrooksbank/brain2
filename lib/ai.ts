@@ -31,9 +31,17 @@ export async function autoTagNote(noteId: number, text: string): Promise<void> {
 
         const data = (await res.json()) as { content?: { text?: string }[] };
         const content = data.content?.[0]?.text ?? '';
-        const tags: unknown = JSON.parse(content);
-        if (Array.isArray(tags) && tags.every((t) => typeof t === 'string')) {
-            const aiTags = tags.map((t: string) => t.toLowerCase());
+        // Models often wrap the array in a ```json fence despite the instructions,
+        // which would make JSON.parse throw and silently drop the tags.
+        const json = content
+            .trim()
+            .replace(/^```(?:json)?\s*/i, '')
+            .replace(/\s*```$/, '');
+        const tags: unknown = JSON.parse(json);
+        if (Array.isArray(tags) && tags.every(t => typeof t === 'string')) {
+            const aiTags = tags
+                .map((t: string) => t.trim().replace(/^#/, '').toLowerCase())
+                .filter(Boolean);
             const note = await db.notes.get(noteId);
             const existing = note?.tags ?? [];
             const merged = Array.from(new Set([...existing, ...aiTags]));

@@ -184,7 +184,7 @@ describe('SettingsView', () => {
 
     it('Test button is disabled while testing', async () => {
         let resolveFetch!: (val: unknown) => void;
-        mockFetch.mockReturnValue(new Promise((resolve) => (resolveFetch = resolve)));
+        mockFetch.mockReturnValue(new Promise(resolve => (resolveFetch = resolve)));
         render(<SettingsView />);
         fireEvent.change(screen.getByLabelText(/claude api key/i), {
             target: { value: 'sk-ant-test' },
@@ -244,7 +244,10 @@ describe('SettingsView', () => {
         await waitFor(() => {
             expect(mockNotesToArray).toHaveBeenCalled();
             expect(mockExportNotesAsZip).toHaveBeenCalledWith([]);
-            expect(mockDownloadBlob).toHaveBeenCalledWith(fakeBlob, expect.stringMatching(/brain2-export-.*\.zip/));
+            expect(mockDownloadBlob).toHaveBeenCalledWith(
+                fakeBlob,
+                expect.stringMatching(/brain2-export-.*\.zip/)
+            );
         });
     });
 
@@ -275,7 +278,13 @@ describe('SettingsView', () => {
 
     it('Download backup button fetches all notes and calls downloadBlob with JSON filename', async () => {
         const fakeNotes = [
-            { id: 1, text: 'hello', tags: ['a'], createdAt: new Date('2024-01-01'), archived: false },
+            {
+                id: 1,
+                text: 'hello',
+                tags: ['a'],
+                createdAt: new Date('2024-01-01'),
+                archived: false,
+            },
         ];
         mockNotesToArray.mockResolvedValue(fakeNotes);
         render(<SettingsView />);
@@ -284,7 +293,7 @@ describe('SettingsView', () => {
             expect(mockNotesToArray).toHaveBeenCalled();
             expect(mockDownloadBlob).toHaveBeenCalledWith(
                 expect.any(Blob),
-                expect.stringMatching(/brain2-backup-.*\.json/),
+                expect.stringMatching(/brain2-backup-.*\.json/)
             );
         });
     });

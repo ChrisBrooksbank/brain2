@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState, useEffect, useCallback } from 'react';
-import { addNote, updateNote } from '@/lib/db';
+import { addNote } from '@/lib/db';
 import { autoTagNote } from '@/lib/ai';
 import { embedNote } from '@/lib/embeddings';
 import { extractHashtags } from '@/lib/hashtags';
@@ -29,11 +29,9 @@ export default function CaptureView() {
     const handleSave = useCallback(async () => {
         const trimmed = text.trim();
         if (!trimmed) return;
-        const hashtags = extractHashtags(trimmed);
-        const id = await addNote(trimmed);
-        if (hashtags.length > 0) {
-            void updateNote(id, { tags: hashtags });
-        }
+        // Store hashtags with the insert so autoTagNote (which reads then merges
+        // tags) can never race with a separate tag write.
+        const id = await addNote(trimmed, extractHashtags(trimmed));
         void autoTagNote(id, trimmed);
         void embedNote(id, trimmed);
         navigator.vibrate?.(10);
@@ -50,7 +48,7 @@ export default function CaptureView() {
                 handleSave();
             }
         },
-        [handleSave],
+        [handleSave]
     );
 
     const handleMic = useCallback(() => {
@@ -88,7 +86,7 @@ export default function CaptureView() {
                 }
             }
             if (finalTranscript) {
-                setText((prev) => (prev ? prev + ' ' + finalTranscript : finalTranscript));
+                setText(prev => (prev ? prev + ' ' + finalTranscript : finalTranscript));
                 setMicError(`Got: "${finalTranscript}"`);
             }
         };
@@ -133,7 +131,7 @@ export default function CaptureView() {
             <textarea
                 ref={textareaRef}
                 value={text}
-                onChange={(e) => setText(e.target.value)}
+                onChange={e => setText(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="What's on your mind? Use [[links]] and #tags"
                 className="flex-1 resize-none rounded-xl bg-card p-4 text-note text-primary placeholder-muted outline-none focus:ring-2 focus:ring-ring"
@@ -160,9 +158,7 @@ export default function CaptureView() {
                         Saved
                     </span>
                 )}
-                {micError && (
-                    <span className="text-sm text-red-400">{micError}</span>
-                )}
+                {micError && <span className="text-sm text-red-400">{micError}</span>}
             </div>
         </div>
     );

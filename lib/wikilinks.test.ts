@@ -3,9 +3,7 @@ import { parseWikiLinks, extractWikiLinks } from './wikilinks';
 
 describe('parseWikiLinks', () => {
     it('returns plain text when no links', () => {
-        expect(parseWikiLinks('hello world')).toEqual([
-            { type: 'text', content: 'hello world' },
-        ]);
+        expect(parseWikiLinks('hello world')).toEqual([{ type: 'text', content: 'hello world' }]);
     });
 
     it('parses a single wiki-link', () => {
@@ -67,5 +65,24 @@ describe('extractWikiLinks', () => {
 
     it('ignores empty brackets', () => {
         expect(extractWikiLinks('[[]] text')).toEqual([]);
+    });
+});
+
+describe('Obsidian link syntax', () => {
+    it('uses the target for navigation and the alias for display', () => {
+        expect(parseWikiLinks('see [[My Note|this one]]')).toEqual([
+            { type: 'text', content: 'see ' },
+            { type: 'wikilink', content: 'My Note', label: 'this one' },
+        ]);
+    });
+
+    it('links a heading reference to its note', () => {
+        expect(parseWikiLinks('[[My Note#Ideas]]')).toEqual([
+            { type: 'wikilink', content: 'My Note', label: 'My Note#Ideas' },
+        ]);
+    });
+
+    it('extracts targets without alias or heading', () => {
+        expect(extractWikiLinks('[[a|alias]] [[b#h]] [[c]]')).toEqual(['a', 'b', 'c']);
     });
 });

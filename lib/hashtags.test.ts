@@ -45,4 +45,14 @@ describe('extractHashtags', () => {
     it('handles tag with alphanumeric chars after first letter', () => {
         expect(extractHashtags('#v2release')).toEqual(['v2release']);
     });
+
+    it('ignores URL fragments and wiki-link headings', () => {
+        expect(
+            extractHashtags('read https://example.com/page#section and [[Note#Heading]] #real')
+        ).toEqual(['real']);
+    });
+
+    it('extracts a tag directly after punctuation', () => {
+        expect(extractHashtags('(#todo)')).toEqual(['todo']);
+    });
 });

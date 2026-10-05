@@ -70,7 +70,11 @@ beforeEach(() => {
     delete (window as unknown as Record<string, unknown>).SpeechRecognition;
     delete (window as unknown as Record<string, unknown>).webkitSpeechRecognition;
     // Mock navigator.vibrate
-    Object.defineProperty(navigator, 'vibrate', { value: vi.fn(), configurable: true, writable: true });
+    Object.defineProperty(navigator, 'vibrate', {
+        value: vi.fn(),
+        configurable: true,
+        writable: true,
+    });
 });
 
 describe('CaptureView', () => {
@@ -104,7 +108,7 @@ describe('CaptureView', () => {
             fireEvent.click(screen.getByRole('button', { name: /save/i }));
         });
         expect(mockAddNote).toHaveBeenCalledOnce();
-        expect(mockAddNote).toHaveBeenCalledWith('my note');
+        expect(mockAddNote).toHaveBeenCalledWith('my note', []);
     });
 
     it('calls autoTagNote with the saved note id and text after save', async () => {
@@ -126,12 +130,16 @@ describe('CaptureView', () => {
         await act(async () => {
             fireEvent.click(screen.getByRole('button', { name: /save/i }));
         });
-        expect(mockUpdateNote).toHaveBeenCalledWith(10, {
-            tags: ['project', 'ideas'],
-        });
+        // Tags are written in the same insert, so autoTagNote cannot race a
+        // separate tag update.
+        expect(mockAddNote).toHaveBeenCalledWith('working on #project and #ideas', [
+            'project',
+            'ideas',
+        ]);
+        expect(mockUpdateNote).not.toHaveBeenCalled();
     });
 
-    it('does not call updateNote for tags when no hashtags present', async () => {
+    it('saves an empty tag list when no hashtags present', async () => {
         mockAddNote.mockResolvedValue(11);
         render(<CaptureView />);
         fireEvent.change(screen.getByRole('textbox'), {
@@ -140,6 +148,7 @@ describe('CaptureView', () => {
         await act(async () => {
             fireEvent.click(screen.getByRole('button', { name: /save/i }));
         });
+        expect(mockAddNote).toHaveBeenCalledWith('no tags here', []);
         expect(mockUpdateNote).not.toHaveBeenCalled();
     });
 
@@ -179,7 +188,7 @@ describe('CaptureView', () => {
             fireEvent.keyDown(textarea, { key: 'Enter', ctrlKey: true });
         });
         expect(mockAddNote).toHaveBeenCalledOnce();
-        expect(mockAddNote).toHaveBeenCalledWith('keyboard save');
+        expect(mockAddNote).toHaveBeenCalledWith('keyboard save', []);
     });
 
     it('does not save on Ctrl+Enter when empty', async () => {

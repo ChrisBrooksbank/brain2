@@ -14,8 +14,13 @@ import BacklinksSection from './BacklinksSection';
 export default function NotesView() {
     const router = useRouter();
     const notes = useLiveQuery(
-        () => db.notes.orderBy('createdAt').reverse().filter((n) => !n.archived).toArray(),
-        [],
+        () =>
+            db.notes
+                .orderBy('createdAt')
+                .reverse()
+                .filter(n => !n.archived)
+                .toArray(),
+        []
     );
     const [expandedId, setExpandedId] = useState<number | null>(null);
     const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
@@ -33,7 +38,7 @@ export default function NotesView() {
         const trimmed = editText.trim();
         if (!trimmed) return;
         const hashtags = extractHashtags(trimmed);
-        const existing = notes?.find((n) => n.id === editingId)?.tags ?? [];
+        const existing = notes?.find(n => n.id === editingId)?.tags ?? [];
         const merged = Array.from(new Set([...existing, ...hashtags]));
         await updateNote(editingId, { text: trimmed, tags: merged });
         void autoTagNote(editingId, trimmed);
@@ -48,8 +53,8 @@ export default function NotesView() {
     }, []);
 
     const allTags = useMemo(
-        () => Array.from(new Set((notes ?? []).flatMap((n) => n.tags))).sort(),
-        [notes],
+        () => Array.from(new Set((notes ?? []).flatMap(n => n.tags))).sort(),
+        [notes]
     );
 
     if (notes === undefined) {
@@ -60,19 +65,22 @@ export default function NotesView() {
         return <p className="p-4 text-muted">No notes yet.</p>;
     }
 
-    const filteredNotes = selectedTag ? notes.filter((n) => n.tags.includes(selectedTag)) : notes;
+    // Ignore a selected tag that no longer exists (e.g. its last note was archived),
+    // otherwise the list would be stuck empty with no chip left to deselect.
+    const activeTag = selectedTag && allTags.includes(selectedTag) ? selectedTag : null;
+    const filteredNotes = activeTag ? notes.filter(n => n.tags.includes(activeTag)) : notes;
 
     return (
         <div className="animate-page-enter">
             {allTags.length > 0 && (
                 <div className="flex flex-wrap gap-2 px-4 pt-4">
-                    {allTags.map((tag) => (
+                    {allTags.map(tag => (
                         <button
                             key={tag}
-                            onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
-                            aria-pressed={selectedTag === tag}
+                            onClick={() => setSelectedTag(activeTag === tag ? null : tag)}
+                            aria-pressed={activeTag === tag}
                             className={`min-h-[44px] rounded-full px-3 py-1 text-sm transition-colors active:opacity-75 ${
-                                selectedTag === tag
+                                activeTag === tag
                                     ? 'bg-blue-600 text-white'
                                     : 'bg-elevated text-secondary hover:bg-hover'
                             }`}
@@ -83,130 +91,158 @@ export default function NotesView() {
                 </div>
             )}
             <ul className="flex flex-col gap-2 p-4">
-            {filteredNotes.map((note) => {
-                const isExpanded = expandedId === note.id;
-                const isConfirming = confirmDeleteId === note.id;
-                const isEditing = editingId === note.id;
-                return (
-                    <li key={note.id} className="rounded-xl bg-card p-4">
-                        {isEditing ? (
-                            <>
-                                <textarea
-                                    value={editText}
-                                    onChange={(e) => setEditText(e.target.value)}
-                                    onKeyDown={(e) => {
-                                        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-                                            e.preventDefault();
-                                            handleSaveEdit();
-                                        }
-                                    }}
-                                    className="w-full resize-none rounded-lg bg-elevated p-3 text-note text-primary placeholder-muted outline-none focus:ring-2 focus:ring-ring"
-                                    rows={6}
-                                    autoFocus
-                                    aria-label="Edit note text"
-                                />
-                                <div className="mt-3 flex gap-2">
-                                    <button
-                                        onClick={handleSaveEdit}
-                                        disabled={!editText.trim()}
-                                        className="min-h-[44px] flex-1 rounded-lg bg-blue-600 text-sm text-white transition-colors hover:bg-blue-500 active:opacity-75 disabled:opacity-30"
-                                    >
-                                        Save
-                                    </button>
-                                    <button
-                                        onClick={handleCancelEdit}
-                                        className="min-h-[44px] flex-1 rounded-lg bg-elevated text-sm text-secondary transition-colors hover:bg-hover active:opacity-75"
-                                    >
-                                        Cancel
-                                    </button>
-                                </div>
-                            </>
-                        ) : (
-                            <>
-                                <button
-                                    onClick={() => setExpandedId(isExpanded ? null : note.id)}
-                                    className="w-full text-left min-h-[44px] active:opacity-75 transition-opacity"
-                                    aria-expanded={isExpanded}
-                                    aria-label={isExpanded ? 'Collapse note' : 'Expand note'}
-                                >
-                                    <p className={isExpanded ? 'whitespace-pre-wrap break-words text-note' : 'line-clamp-3 text-note'}>
-                                        {isExpanded ? (
-                                            <NoteText
-                                                text={note.text}
-                                                onWikiLinkClick={(target) => router.push(`/search?q=${encodeURIComponent(target)}`)}
-                                            />
-                                        ) : (
-                                            truncate(note.text, 120)
-                                        )}
-                                    </p>
-                                    <span className="mt-1 block text-xs text-muted">
-                                        {relativeTime(note.createdAt)}
-                                    </span>
-                                </button>
-                                {note.tags.length > 0 && (
-                                    <div className="mt-2 flex flex-wrap gap-1">
-                                        {note.tags.map((tag) => (
-                                            <span
-                                                key={tag}
-                                                className="rounded-full bg-elevated px-2 py-0.5 text-xs text-secondary"
-                                            >
-                                                {tag}
-                                            </span>
-                                        ))}
-                                    </div>
-                                )}
-                                {isExpanded && (
-                                    <BacklinksSection
-                                        noteId={note.id}
-                                        noteText={note.text}
-                                        onNavigate={(target) => router.push(`/search?q=${encodeURIComponent(target)}`)}
+                {filteredNotes.map(note => {
+                    const isExpanded = expandedId === note.id;
+                    const isConfirming = confirmDeleteId === note.id;
+                    const isEditing = editingId === note.id;
+                    return (
+                        <li key={note.id} className="rounded-xl bg-card p-4">
+                            {isEditing ? (
+                                <>
+                                    <textarea
+                                        value={editText}
+                                        onChange={e => setEditText(e.target.value)}
+                                        onKeyDown={e => {
+                                            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                                                e.preventDefault();
+                                                handleSaveEdit();
+                                            }
+                                        }}
+                                        className="w-full resize-none rounded-lg bg-elevated p-3 text-note text-primary placeholder-muted outline-none focus:ring-2 focus:ring-ring"
+                                        rows={6}
+                                        autoFocus
+                                        aria-label="Edit note text"
                                     />
-                                )}
-                                <div className="mt-3 flex gap-2">
-                                    {isExpanded && (
+                                    <div className="mt-3 flex gap-2">
                                         <button
-                                            onClick={() => handleEdit(note.id, note.text)}
+                                            onClick={handleSaveEdit}
+                                            disabled={!editText.trim()}
+                                            className="min-h-[44px] flex-1 rounded-lg bg-blue-600 text-sm text-white transition-colors hover:bg-blue-500 active:opacity-75 disabled:opacity-30"
+                                        >
+                                            Save
+                                        </button>
+                                        <button
+                                            onClick={handleCancelEdit}
                                             className="min-h-[44px] flex-1 rounded-lg bg-elevated text-sm text-secondary transition-colors hover:bg-hover active:opacity-75"
                                         >
-                                            Edit
+                                            Cancel
                                         </button>
-                                    )}
-                                    <button
-                                        onClick={() => { navigator.vibrate?.(10); archiveNote(note.id); }}
-                                        className="min-h-[44px] flex-1 rounded-lg bg-elevated text-sm text-secondary transition-colors hover:bg-hover active:opacity-75"
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    {/* A div rather than <button>: the expanded body renders wiki-link
+                                    buttons, and buttons cannot be nested inside buttons. */}
+                                    <div
+                                        role="button"
+                                        tabIndex={0}
+                                        onClick={() => setExpandedId(isExpanded ? null : note.id)}
+                                        onKeyDown={e => {
+                                            if (e.target !== e.currentTarget) return;
+                                            if (e.key === 'Enter' || e.key === ' ') {
+                                                e.preventDefault();
+                                                setExpandedId(isExpanded ? null : note.id);
+                                            }
+                                        }}
+                                        className="w-full cursor-pointer text-left min-h-[44px] active:opacity-75 transition-opacity"
+                                        aria-expanded={isExpanded}
+                                        aria-label={isExpanded ? 'Collapse note' : 'Expand note'}
                                     >
-                                        Archive
-                                    </button>
-                                    {isConfirming ? (
-                                        <>
+                                        <p
+                                            className={
+                                                isExpanded
+                                                    ? 'whitespace-pre-wrap break-words text-note'
+                                                    : 'line-clamp-3 text-note'
+                                            }
+                                        >
+                                            {isExpanded ? (
+                                                <NoteText
+                                                    text={note.text}
+                                                    onWikiLinkClick={target =>
+                                                        router.push(
+                                                            `/search?q=${encodeURIComponent(target)}`
+                                                        )
+                                                    }
+                                                />
+                                            ) : (
+                                                truncate(note.text, 120)
+                                            )}
+                                        </p>
+                                        <span className="mt-1 block text-xs text-muted">
+                                            {relativeTime(note.createdAt)}
+                                        </span>
+                                    </div>
+                                    {note.tags.length > 0 && (
+                                        <div className="mt-2 flex flex-wrap gap-1">
+                                            {note.tags.map(tag => (
+                                                <span
+                                                    key={tag}
+                                                    className="rounded-full bg-elevated px-2 py-0.5 text-xs text-secondary"
+                                                >
+                                                    {tag}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
+                                    {isExpanded && (
+                                        <BacklinksSection
+                                            noteId={note.id}
+                                            noteText={note.text}
+                                            onNavigate={target =>
+                                                router.push(
+                                                    `/search?q=${encodeURIComponent(target)}`
+                                                )
+                                            }
+                                        />
+                                    )}
+                                    <div className="mt-3 flex gap-2">
+                                        {isExpanded && (
                                             <button
-                                                onClick={() => deleteNote(note.id)}
-                                                className="min-h-[44px] flex-1 rounded-lg bg-red-600 text-sm text-white transition-colors hover:bg-red-500 active:opacity-75"
-                                            >
-                                                Confirm Delete
-                                            </button>
-                                            <button
-                                                onClick={() => setConfirmDeleteId(null)}
+                                                onClick={() => handleEdit(note.id, note.text)}
                                                 className="min-h-[44px] flex-1 rounded-lg bg-elevated text-sm text-secondary transition-colors hover:bg-hover active:opacity-75"
                                             >
-                                                Cancel
+                                                Edit
                                             </button>
-                                        </>
-                                    ) : (
+                                        )}
                                         <button
-                                            onClick={() => setConfirmDeleteId(note.id)}
+                                            onClick={() => {
+                                                navigator.vibrate?.(10);
+                                                archiveNote(note.id);
+                                            }}
                                             className="min-h-[44px] flex-1 rounded-lg bg-elevated text-sm text-secondary transition-colors hover:bg-hover active:opacity-75"
                                         >
-                                            Delete
+                                            Archive
                                         </button>
-                                    )}
-                                </div>
-                            </>
-                        )}
-                    </li>
-                );
-            })}
-        </ul>
+                                        {isConfirming ? (
+                                            <>
+                                                <button
+                                                    onClick={() => deleteNote(note.id)}
+                                                    className="min-h-[44px] flex-1 rounded-lg bg-red-600 text-sm text-white transition-colors hover:bg-red-500 active:opacity-75"
+                                                >
+                                                    Confirm Delete
+                                                </button>
+                                                <button
+                                                    onClick={() => setConfirmDeleteId(null)}
+                                                    className="min-h-[44px] flex-1 rounded-lg bg-elevated text-sm text-secondary transition-colors hover:bg-hover active:opacity-75"
+                                                >
+                                                    Cancel
+                                                </button>
+                                            </>
+                                        ) : (
+                                            <button
+                                                onClick={() => setConfirmDeleteId(note.id)}
+                                                className="min-h-[44px] flex-1 rounded-lg bg-elevated text-sm text-secondary transition-colors hover:bg-hover active:opacity-75"
+                                            >
+                                                Delete
+                                            </button>
+                                        )}
+                                    </div>
+                                </>
+                            )}
+                        </li>
+                    );
+                })}
+            </ul>
         </div>
     );
 }

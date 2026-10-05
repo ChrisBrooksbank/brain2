@@ -11,12 +11,12 @@ vi.mock('dexie-react-hooks', () => ({
 }));
 
 vi.mock('@/lib/db', () => ({
-    db: {},
+    db: { notes: { filter: vi.fn() } },
     archiveNote: vi.fn().mockResolvedValue(undefined),
 }));
 
 import { useLiveQuery } from 'dexie-react-hooks';
-import { archiveNote } from '@/lib/db';
+import { archiveNote, db } from '@/lib/db';
 
 const mockUseLiveQuery = vi.mocked(useLiveQuery);
 const mockArchiveNote = vi.mocked(archiveNote);
@@ -31,7 +31,11 @@ const sampleNotes = [
 
 beforeEach(() => {
     vi.clearAllMocks();
-    Object.defineProperty(navigator, 'vibrate', { value: vi.fn(), configurable: true, writable: true });
+    Object.defineProperty(navigator, 'vibrate', {
+        value: vi.fn(),
+        configurable: true,
+        writable: true,
+    });
 });
 
 describe('ReviewView', () => {
@@ -51,7 +55,9 @@ describe('ReviewView', () => {
         mockUseLiveQuery.mockReturnValue(sampleNotes);
         render(<ReviewView />);
         expect(screen.getAllByRole('button', { name: /keep/i }).length).toBeGreaterThanOrEqual(1);
-        expect(screen.getAllByRole('button', { name: /archive/i }).length).toBeGreaterThanOrEqual(1);
+        expect(screen.getAllByRole('button', { name: /archive/i }).length).toBeGreaterThanOrEqual(
+            1
+        );
     });
 
     it('renders note text', () => {
@@ -124,5 +130,36 @@ describe('ReviewView', () => {
 
         const keepButtons = screen.getAllByRole('button', { name: /keep/i });
         expect(keepButtons).toHaveLength(5);
+    });
+
+    it('keeps the same session notes when the live query re-runs after an archive', async () => {
+        // Capture the review query callback (the one keyed on session size)
+        let reviewQuery: (() => Promise<unknown>) | undefined;
+        mockUseLiveQuery.mockImplementation(((fn: () => Promise<unknown>, deps?: unknown[]) => {
+            if (deps?.[0] === 5) reviewQuery = fn;
+            return undefined;
+        }) as typeof useLiveQuery);
+        render(<ReviewView />);
+        expect(reviewQuery).toBeDefined();
+
+        const pool = Array.from({ length: 20 }, (_, i) => ({
+            id: i + 1,
+            text: `Note ${i + 1}`,
+            tags: [],
+            createdAt: yesterday,
+            archived: false,
+        }));
+        const notesTable = vi.mocked(db.notes.filter);
+        notesTable.mockImplementation(((pred: (n: (typeof pool)[number]) => boolean) => ({
+            toArray: async () => pool.filter(pred),
+        })) as unknown as typeof db.notes.filter);
+
+        const first = (await reviewQuery!()) as { id: number }[];
+        expect(first).toHaveLength(5);
+
+        // Archive one session note; the query re-runs (as useLiveQuery would)
+        pool.find(n => n.id === first[0].id)!.archived = true;
+        const second = (await reviewQuery!()) as { id: number }[];
+        expect(second.map(n => n.id)).toEqual(first.slice(1).map(n => n.id));
     });
 });

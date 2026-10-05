@@ -146,7 +146,7 @@ describe('SearchView', () => {
         // "world" should be wrapped in a <mark> element
         const marks = document.querySelectorAll('mark');
         expect(marks.length).toBeGreaterThan(0);
-        const markTexts = Array.from(marks).map((m) => m.textContent?.toLowerCase());
-        expect(markTexts.some((t) => t === 'world')).toBe(true);
+        const markTexts = Array.from(marks).map(m => m.textContent?.toLowerCase());
+        expect(markTexts.some(t => t === 'world')).toBe(true);
     });
 });

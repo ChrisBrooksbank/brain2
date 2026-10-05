@@ -8,11 +8,15 @@ beforeEach(async () => {
     await db.backups.clear();
 });
 
-
 describe('createBackup', () => {
     it('creates a snapshot of all notes', async () => {
         await db.notes.add({ text: 'Note 1', tags: [], createdAt: new Date(), archived: false });
-        await db.notes.add({ text: 'Note 2', tags: ['work'], createdAt: new Date(), archived: true });
+        await db.notes.add({
+            text: 'Note 2',
+            tags: ['work'],
+            createdAt: new Date(),
+            archived: true,
+        });
 
         await createBackup();
 
@@ -53,7 +57,7 @@ describe('createBackup', () => {
         const backups = await db.backups.toArray();
         // The 8-day-old backup should be pruned; the 6-day-old and new one remain
         expect(backups).toHaveLength(2);
-        expect(backups.every((b) => b.createdAt > eightDaysAgo)).toBe(true);
+        expect(backups.every(b => b.createdAt > eightDaysAgo)).toBe(true);
     });
 
     it('keeps multiple backups within 7 days', async () => {
@@ -97,5 +101,4 @@ describe('maybeRunDailyBackup', () => {
         const backups = await db.backups.toArray();
         expect(backups).toHaveLength(1);
     });
-
 });

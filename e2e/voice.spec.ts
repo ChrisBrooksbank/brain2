@@ -3,10 +3,7 @@ import { test, expect } from '@playwright/test';
 // Only run on Chromium-based browsers (Speech API support)
 test.describe('Voice transcription', () => {
     test.beforeEach(async ({ page, browserName }) => {
-        test.skip(
-            browserName !== 'chromium',
-            'Speech Recognition only available in Chromium',
-        );
+        test.skip(browserName !== 'chromium', 'Speech Recognition only available in Chromium');
 
         // Grant microphone permission
         await page.context().grantPermissions(['microphone']);
@@ -69,27 +66,19 @@ test.describe('Voice transcription', () => {
         await stopBtn.click();
 
         // Should return to "Start recording"
-        await expect(
-            page.getByRole('button', { name: /start recording/i }),
-        ).toBeVisible();
+        await expect(page.getByRole('button', { name: /start recording/i })).toBeVisible();
     });
 
-    test('transcript appears in textarea after speech recognition', async ({
-        page,
-    }) => {
+    test('transcript appears in textarea after speech recognition', async ({ page }) => {
         const micBtn = page.getByRole('button', { name: /start recording/i });
         await micBtn.click();
 
         // Wait for listening state
-        await expect(
-            page.getByRole('button', { name: /stop recording/i }),
-        ).toBeVisible();
+        await expect(page.getByRole('button', { name: /stop recording/i })).toBeVisible();
 
         // Simulate a speech recognition result from the mock
         await page.evaluate(() => {
-            const rec = (
-                window as unknown as Record<string, unknown>
-            ).__mockRecognition as {
+            const rec = (window as unknown as Record<string, unknown>).__mockRecognition as {
                 onresult: ((ev: unknown) => void) | null;
             };
             rec.onresult?.({
@@ -113,15 +102,11 @@ test.describe('Voice transcription', () => {
 
         // Start listening
         await page.getByRole('button', { name: /start recording/i }).click();
-        await expect(
-            page.getByRole('button', { name: /stop recording/i }),
-        ).toBeVisible();
+        await expect(page.getByRole('button', { name: /stop recording/i })).toBeVisible();
 
         // Simulate first speech result
         await page.evaluate(() => {
-            const rec = (
-                window as unknown as Record<string, unknown>
-            ).__mockRecognition as {
+            const rec = (window as unknown as Record<string, unknown>).__mockRecognition as {
                 onresult: ((ev: unknown) => void) | null;
             };
             rec.onresult?.({
@@ -144,15 +129,11 @@ test.describe('Voice transcription', () => {
         const micBtn = page.getByRole('button', { name: /start recording/i });
         await micBtn.click();
 
-        await expect(
-            page.getByRole('button', { name: /stop recording/i }),
-        ).toBeVisible();
+        await expect(page.getByRole('button', { name: /stop recording/i })).toBeVisible();
 
         // Simulate speech result
         await page.evaluate(() => {
-            const rec = (
-                window as unknown as Record<string, unknown>
-            ).__mockRecognition as {
+            const rec = (window as unknown as Record<string, unknown>).__mockRecognition as {
                 onresult: ((ev: unknown) => void) | null;
             };
             rec.onresult?.({
@@ -172,9 +153,7 @@ test.describe('Voice transcription', () => {
         await expect(textarea).toHaveValue('save this note');
 
         // Stop recording first
-        await page
-            .getByRole('button', { name: /stop recording/i })
-            .click();
+        await page.getByRole('button', { name: /stop recording/i }).click();
 
         // Save the note
         const saveBtn = page.getByRole('button', { name: /save/i });
@@ -188,33 +167,21 @@ test.describe('Voice transcription', () => {
         await expect(page.getByText('Saved')).toBeVisible();
     });
 
-    test('shows error when speech API is unsupported', async ({
-        page,
-        browserName,
-    }) => {
-        test.skip(
-            browserName !== 'chromium',
-            'Only testing on Chromium',
-        );
+    test('shows error when speech API is unsupported', async ({ page, browserName }) => {
+        test.skip(browserName !== 'chromium', 'Only testing on Chromium');
 
         // Create a fresh page without the mock
         const newPage = await page.context().newPage();
         await newPage.addInitScript(() => {
-            delete (window as unknown as Record<string, unknown>)
-                .SpeechRecognition;
-            delete (window as unknown as Record<string, unknown>)
-                .webkitSpeechRecognition;
+            delete (window as unknown as Record<string, unknown>).SpeechRecognition;
+            delete (window as unknown as Record<string, unknown>).webkitSpeechRecognition;
         });
         await newPage.goto('/');
         await newPage.waitForLoadState('networkidle');
 
-        await newPage
-            .getByRole('button', { name: /start recording/i })
-            .click();
+        await newPage.getByRole('button', { name: /start recording/i }).click();
 
-        await expect(
-            newPage.getByText('Speech API not supported'),
-        ).toBeVisible();
+        await expect(newPage.getByText('Speech API not supported')).toBeVisible();
 
         await newPage.close();
     });

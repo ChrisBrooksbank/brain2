@@ -4,6 +4,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useState } from 'react';
 import { db } from '@/lib/db';
 import { truncate } from '@/lib/utils';
+import { extractWikiLinks } from '@/lib/wikilinks';
 
 interface BacklinksSectionProps {
     noteId: number;
@@ -19,9 +20,15 @@ export default function BacklinksSection({ noteId, noteText, onNavigate }: Backl
 
     const backlinks = useLiveQuery(async () => {
         if (!title) return [];
-        const target = `[[${title}]]`.toLowerCase();
+        // Compare parsed link targets so aliased (`[[Title|alias]]`) and heading
+        // (`[[Title#Section]]`) links count as backlinks too.
+        const target = title.toLowerCase();
         return db.notes
-            .filter((n) => n.id !== noteId && n.text.toLowerCase().includes(target))
+            .filter(
+                n =>
+                    n.id !== noteId &&
+                    extractWikiLinks(n.text).some(link => link.toLowerCase() === target)
+            )
             .toArray();
     }, [noteId, title]);
 
@@ -30,7 +37,7 @@ export default function BacklinksSection({ noteId, noteText, onNavigate }: Backl
     return (
         <div className="mt-3 border-t border-default pt-2">
             <button
-                onClick={(e) => {
+                onClick={e => {
                     e.stopPropagation();
                     setOpen(!open);
                 }}
@@ -41,10 +48,10 @@ export default function BacklinksSection({ noteId, noteText, onNavigate }: Backl
             </button>
             {open && (
                 <ul className="mt-2 flex flex-col gap-1">
-                    {backlinks.map((note) => (
+                    {backlinks.map(note => (
                         <li key={note.id}>
                             <button
-                                onClick={(e) => {
+                                onClick={e => {
                                     e.stopPropagation();
                                     onNavigate(note.text.split('\n')[0].trim());
                                 }}

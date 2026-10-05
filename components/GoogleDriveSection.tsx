@@ -29,9 +29,7 @@ export default function GoogleDriveSection() {
     // Derive connected status: when we have a client ID and valid token,
     // treat idle as connected (#9). Avoids setState-in-effect.
     const effectiveStatus: Status =
-        status === 'idle' && savedClientId && isTokenValid()
-            ? 'connected'
-            : status;
+        status === 'idle' && savedClientId && isTokenValid() ? 'connected' : status;
 
     // Clean up message timer on unmount (#5)
     useEffect(() => {
@@ -69,9 +67,7 @@ export default function GoogleDriveSection() {
             setStatus('connected');
         } catch (err) {
             setStatus('idle');
-            showMessage(
-                err instanceof Error ? err.message : 'Connection failed',
-            );
+            showMessage(err instanceof Error ? err.message : 'Connection failed');
         }
     }, [savedClientId]);
 
@@ -98,7 +94,7 @@ export default function GoogleDriveSection() {
     const handleRestore = useCallback(async () => {
         if (!savedClientId) return;
         const confirmed = window.confirm(
-            'This will merge notes from your Google Drive backup. Existing notes won\u2019t be duplicated. Continue?',
+            'This will merge notes from your Google Drive backup. Existing notes won\u2019t be duplicated. Continue?'
         );
         if (!confirmed) return;
         setStatus('restoring');
@@ -106,7 +102,7 @@ export default function GoogleDriveSection() {
         if (result.success) {
             setStatus('connected');
             showMessage(
-                `Restored ${result.added} new note${result.added !== 1 ? 's' : ''}, ${result.skipped} already existed`,
+                `Restored ${result.added} new note${result.added !== 1 ? 's' : ''}, ${result.skipped} already existed`
             );
         } else {
             setStatus(result.error?.includes('expired') ? 'idle' : 'connected');
@@ -128,17 +124,14 @@ export default function GoogleDriveSection() {
 
             {!savedClientId ? (
                 <>
-                    <label
-                        className="text-sm text-secondary"
-                        htmlFor="gdrive-client-id"
-                    >
+                    <label className="text-sm text-secondary" htmlFor="gdrive-client-id">
                         OAuth Client ID
                     </label>
                     <input
                         id="gdrive-client-id"
                         type="text"
                         value={inputId}
-                        onChange={(e) => setInputId(e.target.value)}
+                        onChange={e => setInputId(e.target.value)}
                         placeholder="123456789.apps.googleusercontent.com"
                         className="min-h-[44px] rounded-xl bg-card px-4 text-primary placeholder-muted outline-none focus:ring-2 focus:ring-ring"
                     />
@@ -159,20 +152,15 @@ export default function GoogleDriveSection() {
                         >
                             Google Cloud Console
                         </a>
-                        . Enable the Google Drive API, create a Web Application
-                        credential, and add your origins (e.g.
-                        https://brain2-app.netlify.app).
+                        . Enable the Google Drive API, create a Web Application credential, and add
+                        your origins (e.g. https://brain2-app.netlify.app).
                     </p>
                 </>
             ) : !isConnected && !isBusy ? (
                 <>
                     <div className="flex items-center justify-between">
-                        <span className="text-sm text-secondary">
-                            Client ID saved
-                        </span>
-                        <span className="text-xs text-muted">
-                            Not connected
-                        </span>
+                        <span className="text-sm text-secondary">Client ID saved</span>
+                        <span className="text-xs text-muted">Not connected</span>
                     </div>
                     <button
                         onClick={handleConnect}
@@ -190,9 +178,7 @@ export default function GoogleDriveSection() {
             ) : (
                 <>
                     <div className="flex items-center justify-between">
-                        <span className="text-sm text-secondary">
-                            Google Drive
-                        </span>
+                        <span className="text-sm text-secondary">Google Drive</span>
                         <span className="text-xs font-medium text-green-400">
                             {effectiveStatus === 'connecting'
                                 ? 'Connecting...'
@@ -219,8 +205,7 @@ export default function GoogleDriveSection() {
                     </button>
                     {lastBackup && (
                         <p className="text-xs text-muted">
-                            Last backup:{' '}
-                            {new Date(lastBackup).toLocaleString()}
+                            Last backup: {new Date(lastBackup).toLocaleString()}
                         </p>
                     )}
                     <button
@@ -241,11 +226,7 @@ export default function GoogleDriveSection() {
             )}
 
             {message && (
-                <span
-                    className="text-sm text-faint"
-                    role="status"
-                    aria-live="polite"
-                >
+                <span className="text-sm text-faint" role="status" aria-live="polite">
                     {message}
                 </span>
             )}

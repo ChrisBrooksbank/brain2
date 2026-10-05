@@ -44,7 +44,7 @@ export default function SettingsView() {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
-        getConfig(API_KEY_CONFIG).then((val) => {
+        getConfig(API_KEY_CONFIG).then(val => {
             if (val) {
                 setApiKey(val);
                 setTestStatus('no-key');
@@ -98,7 +98,7 @@ export default function SettingsView() {
         setImportResult(null);
         try {
             const existing = await db.notes.toArray();
-            const existingTexts = new Set(existing.map((n) => n.text));
+            const existingTexts = new Set(existing.map(n => n.text));
             let imported = 0;
             for (const file of Array.from(files)) {
                 const content = await file.text();
@@ -170,13 +170,13 @@ export default function SettingsView() {
                         id="api-key-input"
                         type={showKey ? 'text' : 'password'}
                         value={apiKey}
-                        onChange={(e) => setApiKey(e.target.value)}
+                        onChange={e => setApiKey(e.target.value)}
                         placeholder="sk-ant-…"
                         className="flex-1 min-h-[44px] rounded-xl bg-card px-4 text-primary placeholder-muted outline-none focus:ring-2 focus:ring-ring"
                         aria-label="Claude API key"
                     />
                     <button
-                        onClick={() => setShowKey((s) => !s)}
+                        onClick={() => setShowKey(s => !s)}
                         aria-label={showKey ? 'Hide API key' : 'Show API key'}
                         aria-pressed={showKey}
                         className="min-h-[44px] min-w-[44px] rounded-xl bg-elevated text-secondary active:opacity-75"
@@ -216,9 +216,7 @@ export default function SettingsView() {
                 )}
             </section>
             <section className="flex flex-col gap-3">
-                <h2 className="text-sm font-medium text-faint uppercase tracking-wide">
-                    Data
-                </h2>
+                <h2 className="text-sm font-medium text-faint uppercase tracking-wide">Data</h2>
                 <button
                     onClick={handleExport}
                     disabled={exporting}
@@ -242,7 +240,7 @@ export default function SettingsView() {
                     multiple
                     className="hidden"
                     aria-label="Select markdown files to import"
-                    onChange={(e) => handleImport(e.target.files)}
+                    onChange={e => handleImport(e.target.files)}
                 />
                 <button
                     onClick={() => fileInputRef.current?.click()}
@@ -279,7 +277,7 @@ function SegmentedControl({
 }) {
     return (
         <div className="flex rounded-lg bg-card p-1" role="radiogroup" aria-label={ariaLabel}>
-            {options.map((opt) => (
+            {options.map(opt => (
                 <button
                     key={opt.value}
                     role="radio"
@@ -309,7 +307,7 @@ function SearchSettingsSection() {
             await setConfig('semantic_search_enabled', 'false');
         } else {
             const confirmed = window.confirm(
-                'Enabling semantic search will download an AI model (~33 MB). Continue?',
+                'Enabling semantic search will download an AI model (about 110 MB). Continue?'
             );
             if (confirmed) {
                 await setConfig('semantic_search_enabled', 'true');
@@ -334,15 +332,13 @@ function SearchSettingsSection() {
 
     const handleRegenerate = useCallback(async () => {
         const confirmed = window.confirm(
-            'This will re-embed all notes. This may take a while. Continue?',
+            'This will re-embed all notes. This may take a while. Continue?'
         );
         if (!confirmed) return;
         setRegenerating(true);
         setRegenProgress('Starting…');
         try {
-            const { regenerateAllEmbeddings } = await import(
-                '@/lib/embeddings'
-            );
+            const { regenerateAllEmbeddings } = await import('@/lib/embeddings');
             await regenerateAllEmbeddings((done, total) => {
                 setRegenProgress(`Re-indexing: ${done}/${total} notes`);
             });
@@ -358,9 +354,7 @@ function SearchSettingsSection() {
 
     return (
         <section className="flex flex-col gap-3">
-            <h2 className="text-sm font-medium text-faint uppercase tracking-wide">
-                Search
-            </h2>
+            <h2 className="text-sm font-medium text-faint uppercase tracking-wide">Search</h2>
             <div className="flex items-center justify-between">
                 <span className="text-sm text-secondary">Semantic search</span>
                 <button
@@ -380,7 +374,7 @@ function SearchSettingsSection() {
                 </button>
             </div>
             <p className="text-xs text-muted">
-                Downloads a ~33 MB AI model for meaning-based search.
+                Downloads an AI model (about 110 MB, once) for meaning-based search.
             </p>
             <button
                 onClick={handleClearCache}
@@ -395,17 +389,11 @@ function SearchSettingsSection() {
                     disabled={regenerating}
                     className="min-h-[44px] rounded-xl bg-elevated text-secondary text-sm px-4 transition-opacity disabled:opacity-30 text-left active:opacity-75"
                 >
-                    {regenerating
-                        ? (regenProgress ?? 'Regenerating…')
-                        : 'Regenerate search index'}
+                    {regenerating ? (regenProgress ?? 'Regenerating…') : 'Regenerate search index'}
                 </button>
             )}
             {regenProgress && !regenerating && (
-                <span
-                    className="text-sm text-faint"
-                    role="status"
-                    aria-live="polite"
-                >
+                <span className="text-sm text-faint" role="status" aria-live="polite">
                     {regenProgress}
                 </span>
             )}
@@ -419,9 +407,7 @@ function AppearanceSection() {
 
     return (
         <section className="flex flex-col gap-3">
-            <h2 className="text-sm font-medium text-faint uppercase tracking-wide">
-                Appearance
-            </h2>
+            <h2 className="text-sm font-medium text-faint uppercase tracking-wide">Appearance</h2>
             <label className="text-sm text-secondary">Theme</label>
             <SegmentedControl
                 ariaLabel="Theme"
@@ -431,7 +417,7 @@ function AppearanceSection() {
                     { label: 'System', value: 'system' },
                 ]}
                 value={theme}
-                onChange={(v) => setConfig('theme', v)}
+                onChange={v => setConfig('theme', v)}
             />
             <label className="text-sm text-secondary">Note font size</label>
             <SegmentedControl
@@ -442,7 +428,7 @@ function AppearanceSection() {
                     { label: 'Large', value: 'large' },
                 ]}
                 value={fontSize}
-                onChange={(v) => setConfig('font_size', v)}
+                onChange={v => setConfig('font_size', v)}
             />
         </section>
     );
@@ -453,9 +439,7 @@ function ReviewSizeSection() {
 
     return (
         <section className="flex flex-col gap-3">
-            <h2 className="text-sm font-medium text-faint uppercase tracking-wide">
-                Review
-            </h2>
+            <h2 className="text-sm font-medium text-faint uppercase tracking-wide">Review</h2>
             <label className="text-sm text-secondary">Notes per session</label>
             <SegmentedControl
                 ariaLabel="Review session size"
@@ -466,7 +450,7 @@ function ReviewSizeSection() {
                     { label: '15', value: '15' },
                 ]}
                 value={sessionSize}
-                onChange={(v) => setConfig('review_session_size', v)}
+                onChange={v => setConfig('review_session_size', v)}
             />
         </section>
     );
