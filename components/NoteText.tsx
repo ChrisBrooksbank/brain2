@@ -17,7 +17,7 @@ function highlightText(text: string, query: string): ReactNode[] {
             </mark>
         ) : (
             part
-        ),
+        )
     );
 }
 
@@ -31,13 +31,13 @@ export default function NoteText({ text, onWikiLinkClick, highlight }: NoteTextP
                     return (
                         <button
                             key={i}
-                            onClick={(e) => {
+                            onClick={e => {
                                 e.stopPropagation();
                                 onWikiLinkClick?.(seg.content);
                             }}
                             className="text-blue-400 underline"
                         >
-                            {seg.content}
+                            {seg.label ?? seg.content}
                         </button>
                     );
                 }

@@ -1,5 +1,5 @@
 import 'fake-indexeddb/auto';
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { db } from './db';
 import {
     storeToken,
@@ -11,6 +11,8 @@ import {
     deduplicateNotes,
     validateBackup,
     DriveApiError,
+    performBackup,
+    disconnect,
 } from './gdrive';
 import type { Note } from './db';
 
@@ -129,10 +131,7 @@ describe('deduplicateNotes', () => {
     });
 
     it('handles mix of new and existing notes', () => {
-        const existing = [
-            makeNote('A', '2025-01-01'),
-            makeNote('B', '2025-01-02'),
-        ];
+        const existing = [makeNote('A', '2025-01-01'), makeNote('B', '2025-01-02')];
         const incoming = [
             makeNote('A', '2025-01-01'),
             makeNote('C', '2025-01-03'),
@@ -180,14 +179,14 @@ describe('validateBackup', () => {
 
     it('rejects wrong version', () => {
         expect(() => validateBackup({ ...validBackup, version: 2 })).toThrow(
-            'Unsupported backup version',
+            'Unsupported backup version'
         );
     });
 
     it('rejects non-array notes', () => {
-        expect(() =>
-            validateBackup({ ...validBackup, notes: 'not array' }),
-        ).toThrow('notes is not an array');
+        expect(() => validateBackup({ ...validBackup, notes: 'not array' })).toThrow(
+            'notes is not an array'
+        );
     });
 
     it('rejects note with missing text', () => {
@@ -195,7 +194,7 @@ describe('validateBackup', () => {
             validateBackup({
                 ...validBackup,
                 notes: [{ id: 1, tags: [], createdAt: '2025-01-01', archived: false }],
-            }),
+            })
         ).toThrow('invalid text');
     });
 
@@ -212,7 +211,7 @@ describe('validateBackup', () => {
                         archived: false,
                     },
                 ],
-            }),
+            })
         ).toThrow('invalid tags');
     });
 
@@ -228,14 +227,14 @@ describe('validateBackup', () => {
                         createdAt: '2025-01-01',
                     },
                 ],
-            }),
+            })
         ).toThrow('invalid archived');
     });
 
     it('rejects non-array embeddings', () => {
-        expect(() =>
-            validateBackup({ ...validBackup, embeddings: 'bad' }),
-        ).toThrow('embeddings is not an array');
+        expect(() => validateBackup({ ...validBackup, embeddings: 'bad' })).toThrow(
+            'embeddings is not an array'
+        );
     });
 });
 
@@ -246,5 +245,35 @@ describe('DriveApiError', () => {
         expect(err).toBeInstanceOf(DriveApiError);
         expect(err.status).toBe(404);
         expect(err.message).toBe('Not found');
+    });
+});
+
+describe('performBackup', () => {
+    const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status });
+
+    it('recreates the backup file when the cached file was deleted in Drive', async () => {
+        await disconnect(); // reset cached folder/file IDs
+        storeToken('tok', 3600);
+        const fetchMock = vi
+            .fn()
+            // first attempt: folder + stale file found, PATCH hits a deleted file
+            .mockResolvedValueOnce(json({ files: [{ id: 'folder' }] }))
+            .mockResolvedValueOnce(json({ files: [{ id: 'deleted-file' }] }))
+            .mockResolvedValueOnce(json({}, 404))
+            // retry with fresh lookups: no file, so it is created
+            .mockResolvedValueOnce(json({ files: [{ id: 'folder' }] }))
+            .mockResolvedValueOnce(json({ files: [] }))
+            .mockResolvedValueOnce(json({ id: 'new-file' }));
+        vi.stubGlobal('fetch', fetchMock);
+
+        try {
+            const result = await performBackup('client-id');
+            expect(result).toEqual({ success: true });
+            const [url, init] = fetchMock.mock.calls[5] as [string, RequestInit];
+            expect(init.method).toBe('POST');
+            expect(url).toContain('/upload/drive/v3/files?uploadType=multipart');
+        } finally {
+            vi.unstubAllGlobals();
+        }
     });
 });

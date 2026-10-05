@@ -47,10 +47,7 @@ export function getStoredExpiry(): number {
 
 export function storeToken(token: string, expiresInSeconds: number): void {
     sessionStorage.setItem(TOKEN_KEY, token);
-    sessionStorage.setItem(
-        EXPIRY_KEY,
-        String(Date.now() + expiresInSeconds * 1000),
-    );
+    sessionStorage.setItem(EXPIRY_KEY, String(Date.now() + expiresInSeconds * 1000));
 }
 
 export function clearToken(): void {
@@ -80,10 +77,7 @@ declare global {
                             error?: string;
                         }) => void;
                     }): { requestAccessToken(): void };
-                    revoke(
-                        token: string,
-                        callback: () => void,
-                    ): void;
+                    revoke(token: string, callback: () => void): void;
                 };
             };
         };
@@ -136,7 +130,7 @@ export function requestAccessToken(clientId: string): Promise<string> {
         const client = window.google.accounts.oauth2.initTokenClient({
             client_id: clientId,
             scope: SCOPE,
-            callback: (response) => {
+            callback: response => {
                 if (settled) return;
                 settled = true;
                 clearTimeout(timer);
@@ -186,7 +180,7 @@ async function ensureFolder(token: string): Promise<string> {
     const q = `name='${FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
     const res = await driveGet(
         token,
-        `/files?q=${encodeURIComponent(q)}&fields=files(id,name)&spaces=drive`,
+        `/files?q=${encodeURIComponent(q)}&fields=files(id,name)&spaces=drive`
     );
     const data = (await res.json()) as { files: { id: string }[] };
     if (data.files.length > 0) {
@@ -209,7 +203,7 @@ async function ensureFolder(token: string): Promise<string> {
     if (!createRes.ok) {
         throw new DriveApiError(
             `Drive create folder failed: ${createRes.status}`,
-            createRes.status,
+            createRes.status
         );
     }
     const folder = (await createRes.json()) as { id: string };
@@ -218,16 +212,13 @@ async function ensureFolder(token: string): Promise<string> {
 }
 
 /** Find the backup file inside the Brain2 folder. Returns fileId or null. */
-async function findBackupFile(
-    token: string,
-    folderId: string,
-): Promise<string | null> {
+async function findBackupFile(token: string, folderId: string): Promise<string | null> {
     if (cachedFileId !== undefined) return cachedFileId;
 
     const q = `name='${BACKUP_FILENAME}' and '${folderId}' in parents and trashed=false`;
     const res = await driveGet(
         token,
-        `/files?q=${encodeURIComponent(q)}&fields=files(id)&spaces=drive`,
+        `/files?q=${encodeURIComponent(q)}&fields=files(id)&spaces=drive`
     );
     const data = (await res.json()) as { files: { id: string }[] };
     cachedFileId = data.files.length > 0 ? data.files[0].id : null;
@@ -249,7 +240,7 @@ async function uploadBackup(
     token: string,
     payload: Brain2Backup,
     folderId: string,
-    fileId?: string | null,
+    fileId?: string | null
 ): Promise<void> {
     const body = JSON.stringify(payload);
     const boundary = '---brain2boundary';
@@ -331,9 +322,7 @@ export function validateBackup(data: unknown): Brain2Backup {
 }
 
 /** Download and parse the backup file. */
-async function downloadBackup(
-    token: string,
-): Promise<Brain2Backup | null> {
+async function downloadBackup(token: string): Promise<Brain2Backup | null> {
     const folderId = await ensureFolder(token);
     const fileId = await findBackupFile(token, folderId);
     if (!fileId) return null;
@@ -359,16 +348,13 @@ export async function buildBackupPayload(): Promise<Brain2Backup> {
 // --- Deduplication ---
 
 function noteKey(note: { createdAt: Date | string; text: string }): string {
-    const dateStr =
-        note.createdAt instanceof Date
-            ? note.createdAt.toISOString()
-            : note.createdAt;
+    const dateStr = note.createdAt instanceof Date ? note.createdAt.toISOString() : note.createdAt;
     return `${dateStr}||${note.text}`;
 }
 
 export function deduplicateNotes(
     existing: Note[],
-    incoming: Note[],
+    incoming: Note[]
 ): { toAdd: Note[]; skipped: number } {
     const existingKeys = new Set(existing.map(noteKey));
     const toAdd: Note[] = [];
@@ -391,13 +377,31 @@ async function getValidToken(clientId: string): Promise<string> {
     return requestAccessToken(clientId);
 }
 
+/**
+ * Run a Drive operation, retrying once with fresh lookups on 404. The folder
+ * and file IDs are cached for the session, so if the user deletes or trashes
+ * them in Drive every request would otherwise keep hitting a dead ID.
+ */
+async function withFreshIdsOn404<T>(op: () => Promise<T>): Promise<T> {
+    try {
+        return await op();
+    } catch (err) {
+        if (!(err instanceof DriveApiError && err.status === 404)) throw err;
+        cachedFolderId = null;
+        cachedFileId = undefined;
+        return op();
+    }
+}
+
 export async function performBackup(clientId: string): Promise<BackupResult> {
     try {
         const token = await getValidToken(clientId);
         const payload = await buildBackupPayload();
-        const folderId = await ensureFolder(token);
-        const fileId = await findBackupFile(token, folderId);
-        await uploadBackup(token, payload, folderId, fileId);
+        await withFreshIdsOn404(async () => {
+            const folderId = await ensureFolder(token);
+            const fileId = await findBackupFile(token, folderId);
+            await uploadBackup(token, payload, folderId, fileId);
+        });
         return { success: true };
     } catch (err) {
         if (err instanceof DriveApiError && err.status === 401) {
@@ -417,9 +421,14 @@ export async function performBackup(clientId: string): Promise<BackupResult> {
 export async function performRestore(clientId: string): Promise<RestoreResult> {
     try {
         const token = await getValidToken(clientId);
-        const backup = await downloadBackup(token);
+        const backup = await withFreshIdsOn404(() => downloadBackup(token));
         if (!backup) {
-            return { success: false, added: 0, skipped: 0, error: 'No backup found on Google Drive.' };
+            return {
+                success: false,
+                added: 0,
+                skipped: 0,
+                error: 'No backup found on Google Drive.',
+            };
         }
 
         const existingNotes = await db.notes.toArray();
@@ -461,9 +470,7 @@ export async function performRestore(clientId: string): Promise<RestoreResult> {
                         }
                     }
                     if (embeddingsToAdd.length > 0) {
-                        await db.embeddings.bulkAdd(
-                            embeddingsToAdd as Embedding[],
-                        );
+                        await db.embeddings.bulkAdd(embeddingsToAdd as Embedding[]);
                     }
                 }
             });
@@ -473,7 +480,12 @@ export async function performRestore(clientId: string): Promise<RestoreResult> {
     } catch (err) {
         if (err instanceof DriveApiError && err.status === 401) {
             clearToken();
-            return { success: false, added: 0, skipped: 0, error: 'Session expired — please reconnect.' };
+            return {
+                success: false,
+                added: 0,
+                skipped: 0,
+                error: 'Session expired — please reconnect.',
+            };
         }
         const message = err instanceof Error ? err.message : String(err);
         return { success: false, added: 0, skipped: 0, error: message };
@@ -481,7 +493,7 @@ export async function performRestore(clientId: string): Promise<RestoreResult> {
 }
 
 export function disconnect(): Promise<void> {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
         const token = getStoredToken();
         if (token && window.google?.accounts?.oauth2) {
             window.google.accounts.oauth2.revoke(token, () => {

@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { noteToMarkdown, noteToSlug, noteToFilename, parseMarkdownNote } from './export';
+import JSZip from 'jszip';
+import {
+    noteToMarkdown,
+    noteToSlug,
+    noteToFilename,
+    parseMarkdownNote,
+    exportNotesAsZip,
+} from './export';
 import { type Note } from './db';
 
 function makeNote(overrides: Partial<Note> = {}): Note {
@@ -113,7 +120,7 @@ describe('parseMarkdownNote', () => {
     it('deduplicates #hashtags already present in frontmatter', () => {
         const md = '---\ndate: 2024-01-01\ntags: ["mytag"]\n---\n\nNote with #mytag';
         const result = parseMarkdownNote(md);
-        expect(result.tags.filter((t) => t === 'mytag')).toHaveLength(1);
+        expect(result.tags.filter(t => t === 'mytag')).toHaveLength(1);
     });
 
     it('handles missing frontmatter gracefully', () => {
@@ -135,5 +142,43 @@ describe('parseMarkdownNote', () => {
         expect(parsed.text).toBe('Round trip test');
         expect(parsed.tags).toEqual(['alpha', 'beta']);
         expect(parsed.createdAt.toISOString().slice(0, 10)).toBe('2024-06-15');
+    });
+
+    it('parses Obsidian block-list tags and normalises case and #', () => {
+        const md = '---\ndate: 2024-01-01\ntags:\n  - Project\n  - "#ideas"\n---\n\nBody';
+        const result = parseMarkdownNote(md);
+        expect(result.tags).toEqual(['project', 'ideas']);
+        expect(result.text).toBe('Body');
+    });
+
+    it('parses comma-separated scalar tags', () => {
+        const result = parseMarkdownNote('---\ntags: work, home\n---\nBody');
+        expect(result.tags).toEqual(['work', 'home']);
+    });
+
+    it('handles Windows line endings and a byte-order mark', () => {
+        const md = '\uFEFF---\r\ndate: 2024-06-15\r\ntags: [a]\r\n---\r\n\r\nHello';
+        const result = parseMarkdownNote(md);
+        expect(result.text).toBe('Hello');
+        expect(result.tags).toEqual(['a']);
+        expect(result.createdAt.toISOString().slice(0, 10)).toBe('2024-06-15');
+    });
+
+    it('round-trips tags containing quotes', () => {
+        const note = makeNote({ text: 'Quotes', tags: ['say "hi"'] });
+        expect(parseMarkdownNote(noteToMarkdown(note)).tags).toEqual(['say "hi"']);
+    });
+});
+
+describe('exportNotesAsZip filenames', () => {
+    it('never overwrites a note whose natural name matches a numbered fallback', async () => {
+        const notes = [
+            makeNote({ id: 1, text: 'foo' }),
+            makeNote({ id: 2, text: 'foo' }),
+            makeNote({ id: 3, text: 'foo 1' }),
+        ];
+        const blob = await exportNotesAsZip(notes);
+        const zip = await JSZip.loadAsync(await blob.arrayBuffer());
+        expect(Object.keys(zip.files)).toHaveLength(3);
     });
 });

@@ -1,6 +1,9 @@
 import { db, putEmbedding, getAllEmbeddings } from './db';
 
-type Pipeline = (texts: string[], options?: { pooling: string; normalize: boolean }) => Promise<{ tolist: () => number[][] }>;
+type Pipeline = (
+    texts: string[],
+    options?: { pooling: string; normalize: boolean }
+) => Promise<{ tolist: () => number[][] }>;
 
 let pipelinePromise: Promise<Pipeline> | null = null;
 
@@ -13,6 +16,11 @@ async function getPipeline(): Promise<Pipeline> {
             });
             return pipe as unknown as Pipeline;
         })();
+        // Don't cache a failed load (e.g. first use while offline), or every
+        // later retry would get the same rejection until the page reloads.
+        pipelinePromise.catch(() => {
+            pipelinePromise = null;
+        });
     }
     return pipelinePromise;
 }
@@ -44,14 +52,14 @@ export async function embedNote(noteId: number, text: string): Promise<void> {
 
 export async function semanticSearch(
     query: string,
-    topK: number = 10,
+    topK: number = 10
 ): Promise<{ noteId: number; score: number }[]> {
     const queryVector = await generateEmbedding(query);
     const embeddings = await getAllEmbeddings();
 
     const scored = embeddings
-        .map((e) => ({ noteId: e.noteId, score: cosineSimilarity(queryVector, e.vector) }))
-        .filter((r) => r.score >= 0.3)
+        .map(e => ({ noteId: e.noteId, score: cosineSimilarity(queryVector, e.vector) }))
+        .filter(r => r.score >= 0.3)
         .sort((a, b) => b.score - a.score)
         .slice(0, topK);
 
@@ -60,7 +68,7 @@ export async function semanticSearch(
 
 async function embedNoteList(
     notes: { id: number; text: string }[],
-    onProgress?: (done: number, total: number) => void,
+    onProgress?: (done: number, total: number) => void
 ): Promise<void> {
     for (let i = 0; i < notes.length; i++) {
         await embedNote(notes[i].id, notes[i].text);
@@ -69,7 +77,7 @@ async function embedNoteList(
 }
 
 export async function regenerateAllEmbeddings(
-    onProgress?: (done: number, total: number) => void,
+    onProgress?: (done: number, total: number) => void
 ): Promise<void> {
     await db.embeddings.clear();
     const allNotes = await db.notes.toArray();
@@ -77,11 +85,11 @@ export async function regenerateAllEmbeddings(
 }
 
 export async function embedAllUnembedded(
-    onProgress?: (done: number, total: number) => void,
+    onProgress?: (done: number, total: number) => void
 ): Promise<void> {
     const allNotes = await db.notes.toArray();
     const allEmbeddings = await getAllEmbeddings();
-    const embeddedIds = new Set(allEmbeddings.map((e) => e.noteId));
-    const unembedded = allNotes.filter((n) => !embeddedIds.has(n.id));
+    const embeddedIds = new Set(allEmbeddings.map(e => e.noteId));
+    const unembedded = allNotes.filter(n => !embeddedIds.has(n.id));
     await embedNoteList(unembedded, onProgress);
 }
