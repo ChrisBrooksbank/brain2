@@ -4,7 +4,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useState } from 'react';
 import { db } from '@/lib/db';
 import { truncate } from '@/lib/utils';
-import { extractWikiLinks } from '@/lib/wikilinks';
+import { extractWikiLinks, noteTitle } from '@/lib/wikilinks';
 
 interface BacklinksSectionProps {
     noteId: number;
@@ -15,8 +15,7 @@ interface BacklinksSectionProps {
 export default function BacklinksSection({ noteId, noteText, onNavigate }: BacklinksSectionProps) {
     const [open, setOpen] = useState(false);
 
-    // Use first line as implicit title
-    const title = noteText.split('\n')[0].trim();
+    const title = noteTitle(noteText);
 
     const backlinks = useLiveQuery(async () => {
         if (!title) return [];
@@ -53,7 +52,7 @@ export default function BacklinksSection({ noteId, noteText, onNavigate }: Backl
                             <button
                                 onClick={e => {
                                     e.stopPropagation();
-                                    onNavigate(note.text.split('\n')[0].trim());
+                                    onNavigate(noteTitle(note.text));
                                 }}
                                 className="w-full text-left rounded-lg bg-elevated px-3 py-2 text-sm text-secondary hover:bg-hover transition-colors"
                             >

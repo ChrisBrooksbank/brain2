@@ -103,7 +103,8 @@ export default function SettingsView() {
             for (const file of Array.from(files)) {
                 const content = await file.text();
                 const parsed = parseMarkdownNote(content);
-                if (!existingTexts.has(parsed.text)) {
+                // Skip empty files and frontmatter-only files rather than adding blank notes
+                if (parsed.text && !existingTexts.has(parsed.text)) {
                     await db.notes.add({
                         text: parsed.text,
                         tags: parsed.tags,

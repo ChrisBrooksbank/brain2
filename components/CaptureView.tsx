@@ -26,12 +26,22 @@ export default function CaptureView() {
         };
     }, []);
 
+    // Guards against saving twice: the text isn't cleared until the insert resolves,
+    // so a double-tap or repeated Ctrl+Enter would otherwise add duplicate notes.
+    const savingRef = useRef(false);
+
     const handleSave = useCallback(async () => {
         const trimmed = text.trim();
-        if (!trimmed) return;
-        // Store hashtags with the insert so autoTagNote (which reads then merges
-        // tags) can never race with a separate tag write.
-        const id = await addNote(trimmed, extractHashtags(trimmed));
+        if (!trimmed || savingRef.current) return;
+        savingRef.current = true;
+        let id: number;
+        try {
+            // Store hashtags with the insert so autoTagNote (which reads then merges
+            // tags) can never race with a separate tag write.
+            id = await addNote(trimmed, extractHashtags(trimmed));
+        } finally {
+            savingRef.current = false;
+        }
         void autoTagNote(id, trimmed);
         void embedNote(id, trimmed);
         navigator.vibrate?.(10);

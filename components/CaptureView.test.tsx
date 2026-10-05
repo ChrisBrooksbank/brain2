@@ -139,6 +139,22 @@ describe('CaptureView', () => {
         expect(mockUpdateNote).not.toHaveBeenCalled();
     });
 
+    it('saves only once when Save is pressed again before the first save finishes', async () => {
+        let resolveAdd: (id: number) => void = () => {};
+        mockAddNote.mockImplementationOnce(
+            () => new Promise<number>(resolve => (resolveAdd = resolve))
+        );
+        render(<CaptureView />);
+        fireEvent.change(screen.getByRole('textbox'), { target: { value: 'double tap' } });
+        const save = screen.getByRole('button', { name: /save/i });
+        await act(async () => {
+            fireEvent.click(save);
+            fireEvent.click(save);
+        });
+        await act(async () => resolveAdd(5));
+        expect(mockAddNote).toHaveBeenCalledOnce();
+    });
+
     it('saves an empty tag list when no hashtags present', async () => {
         mockAddNote.mockResolvedValue(11);
         render(<CaptureView />);

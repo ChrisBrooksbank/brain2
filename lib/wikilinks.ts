@@ -56,3 +56,14 @@ export function parseWikiLinks(text: string): WikiLinkSegment[] {
 export function extractWikiLinks(text: string): string[] {
     return Array.from(text.matchAll(WIKILINK_RE), m => parseLinkBody(m[1]).target);
 }
+
+/**
+ * A note's title is its first line, without a leading Markdown heading marker,
+ * so a note starting "# Sleep & focus" is the target of [[Sleep & focus]].
+ */
+export function noteTitle(text: string): string {
+    return text
+        .split('\n')[0]
+        .replace(/^#{1,6}\s+/, '')
+        .trim();
+}

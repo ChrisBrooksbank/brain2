@@ -36,3 +36,6 @@ out/
 test-results/
 playwright-report/
 blob-report/
+
+# TypeScript incremental build cache
+*.tsbuildinfo

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseWikiLinks, extractWikiLinks } from './wikilinks';
+import { parseWikiLinks, extractWikiLinks, noteTitle } from './wikilinks';
 
 describe('parseWikiLinks', () => {
     it('returns plain text when no links', () => {
@@ -84,5 +84,19 @@ describe('Obsidian link syntax', () => {
 
     it('extracts targets without alias or heading', () => {
         expect(extractWikiLinks('[[a|alias]] [[b#h]] [[c]]')).toEqual(['a', 'b', 'c']);
+    });
+});
+
+describe('noteTitle', () => {
+    it('uses the first line', () => {
+        expect(noteTitle('Sleep & focus\nbody')).toBe('Sleep & focus');
+    });
+
+    it('strips a Markdown heading marker', () => {
+        expect(noteTitle('## Sleep & focus\nbody')).toBe('Sleep & focus');
+    });
+
+    it('keeps a leading hashtag, which is not a heading', () => {
+        expect(noteTitle('#idea for later')).toBe('#idea for later');
     });
 });

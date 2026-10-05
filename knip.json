@@ -1,8 +1,7 @@
 {
     "entry": ["app/**/*.{ts,tsx}"],
-    "project": ["**/*.{ts,tsx}"],
+    "project": ["**/*.{ts,tsx,css}"],
     "next": {
         "entry": ["next.config.{js,ts,mjs}", "app/**/*.{ts,tsx}"]
-    },
-    "ignoreDependencies": ["@anthropic-ai/sdk", "tailwindcss", "postcss"]
+    }
 }

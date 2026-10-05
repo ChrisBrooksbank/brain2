@@ -1,7 +1,7 @@
 'use client';
 
 import { useLiveQuery } from 'dexie-react-hooks';
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { db, type Note } from '@/lib/db';
 import { relativeTime } from '@/lib/utils';
@@ -23,28 +23,28 @@ export default function SearchView() {
     const [embedProgress, setEmbedProgress] = useState<string | null>(null);
     const [semanticResults, setSemanticResults] = useState<{ note: Note; score: number }[]>([]);
 
-    useEffect(() => {
+    // Sync the query when the URL changes (e.g. following a wiki-link from another view).
+    // Adjusting state during render avoids the extra render pass a sync effect would cause.
+    const [prevSearchParams, setPrevSearchParams] = useState(searchParams);
+    if (searchParams !== prevSearchParams) {
+        setPrevSearchParams(searchParams);
         const q = searchParams.get('q') ?? '';
         setInput(q);
         setQuery(q);
-    }, [searchParams]);
+    }
 
-    // Fall back to keyword mode when semantic gets disabled
-    useEffect(() => {
-        if (semanticEnabled !== 'true' && mode === 'semantic') {
-            setMode('keyword');
-        }
-    }, [semanticEnabled, mode]);
-
-    // Reset semantic state when setting is disabled so re-enabling triggers fresh init
-    useEffect(() => {
+    // When semantic search is disabled, fall back to keyword mode and reset the model
+    // state so re-enabling triggers a fresh init
+    const [prevSemanticEnabled, setPrevSemanticEnabled] = useState(semanticEnabled);
+    if (semanticEnabled !== prevSemanticEnabled) {
+        setPrevSemanticEnabled(semanticEnabled);
         if (semanticEnabled !== 'true') {
+            setMode('keyword');
             setModelStatus('idle');
-            initRunning.current = false;
             setSemanticResults([]);
             setEmbedProgress(null);
         }
-    }, [semanticEnabled]);
+    }
 
     useEffect(() => {
         const timer = setTimeout(() => setQuery(input.trim()), 200);
@@ -61,10 +61,8 @@ export default function SearchView() {
         setQuery(target);
     };
 
-    const initRunning = useRef(false);
+    // Only called while modelStatus is 'idle'; switching to 'loading' guards re-entry
     const initSemanticMode = useCallback(async () => {
-        if (initRunning.current) return;
-        initRunning.current = true;
         setModelStatus('loading');
         try {
             const { generateEmbedding, embedAllUnembedded } = await import('@/lib/embeddings');
@@ -80,7 +78,6 @@ export default function SearchView() {
         } catch {
             setModelStatus('error');
             setMode('keyword');
-            initRunning.current = false;
         }
     }, []);
 
