@@ -313,4 +313,21 @@ describe('SettingsView', () => {
             expect(screen.getByText('Imported 0 notes')).toBeInTheDocument();
         });
     });
+
+    it('skips files with no note body', async () => {
+        mockNotesToArray.mockResolvedValue([]);
+        mockParseMarkdownNote.mockReturnValueOnce({ text: '', tags: [], createdAt: new Date() });
+        render(<SettingsView />);
+        const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+        const file = new File(['---\ndate: 2024-01-01\n---\n'], 'empty.md', {
+            type: 'text/markdown',
+        });
+        await act(async () => {
+            fireEvent.change(fileInput, { target: { files: [file] } });
+        });
+        await waitFor(() => {
+            expect(mockNotesAdd).not.toHaveBeenCalled();
+            expect(screen.getByText('Imported 0 notes')).toBeInTheDocument();
+        });
+    });
 });
