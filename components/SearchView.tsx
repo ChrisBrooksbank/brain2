@@ -52,6 +52,9 @@ export default function SearchView() {
     }, [input]);
 
     const allNotes = useLiveQuery(() => db.notes.orderBy('createdAt').reverse().toArray(), []);
+    // Re-run semantic search as embeddings land: existing notes are embedded in the
+    // background after the model loads, and new notes are embedded after saving.
+    const embeddingCount = useLiveQuery(() => db.embeddings.count(), []);
 
     const handleWikiLinkClick = (target: string) => {
         setInput(target);
@@ -90,17 +93,17 @@ export default function SearchView() {
             const { semanticSearch } = await import('@/lib/embeddings');
             const results = await semanticSearch(query);
             if (cancelled) return;
-            const noteMap = new Map(allNotes.map((n) => [n.id, n]));
+            const noteMap = new Map(allNotes.map(n => [n.id, n]));
             setSemanticResults(
                 results
-                    .map((r) => ({ note: noteMap.get(r.noteId), score: r.score }))
-                    .filter((r): r is { note: Note; score: number } => r.note !== undefined),
+                    .map(r => ({ note: noteMap.get(r.noteId), score: r.score }))
+                    .filter((r): r is { note: Note; score: number } => r.note !== undefined)
             );
         })();
         return () => {
             cancelled = true;
         };
-    }, [mode, modelStatus, query, allNotes]);
+    }, [mode, modelStatus, query, allNotes, embeddingCount]);
 
     const handleModeSwitch = (newMode: SearchMode) => {
         setMode(newMode);
@@ -112,9 +115,9 @@ export default function SearchView() {
     const keywordResults = useMemo(
         () =>
             allNotes && query
-                ? allNotes.filter((n) => n.text.toLowerCase().includes(query.toLowerCase()))
+                ? allNotes.filter(n => n.text.toLowerCase().includes(query.toLowerCase()))
                 : [],
-        [allNotes, query],
+        [allNotes, query]
     );
 
     const renderNote = (note: Note, score?: number) => (
@@ -136,12 +139,10 @@ export default function SearchView() {
                     onWikiLinkClick={handleWikiLinkClick}
                 />
             </p>
-            <span className="mt-1 block text-xs text-muted">
-                {relativeTime(note.createdAt)}
-            </span>
+            <span className="mt-1 block text-xs text-muted">{relativeTime(note.createdAt)}</span>
             {note.tags.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1">
-                    {note.tags.map((tag) => (
+                    {note.tags.map(tag => (
                         <span
                             key={tag}
                             className="rounded-full bg-elevated px-2 py-0.5 text-xs text-secondary"
@@ -161,7 +162,7 @@ export default function SearchView() {
                     type="search"
                     placeholder="Search notes…"
                     value={input}
-                    onChange={(e) => setInput(e.target.value)}
+                    onChange={e => setInput(e.target.value)}
                     autoFocus
                     aria-label="Search notes"
                     className="w-full min-h-[44px] rounded-xl bg-card px-4 py-3 text-primary placeholder-muted outline-none focus:ring-2 focus:ring-blue-600"
@@ -191,13 +192,9 @@ export default function SearchView() {
                     </div>
                 )}
             </div>
-            {allNotes === undefined && (
-                <p className="px-4 text-muted">Loading…</p>
-            )}
+            {allNotes === undefined && <p className="px-4 text-muted">Loading…</p>}
             {mode === 'semantic' && modelStatus === 'loading' && (
-                <p className="px-4 text-muted">
-                    Loading AI model (one-time download)…
-                </p>
+                <p className="px-4 text-muted">Loading AI model (one-time download)…</p>
             )}
             {mode === 'semantic' && embedProgress && (
                 <p className="px-4 text-muted">{embedProgress}</p>
@@ -207,26 +204,34 @@ export default function SearchView() {
                     Failed to load AI model. Falling back to keyword search.
                 </p>
             )}
-            {mode === 'keyword' && allNotes !== undefined && query && (() => {
-                if (keywordResults.length === 0) {
-                    return <p className="px-4 text-muted">No notes match your search.</p>;
-                }
-                return (
-                    <ul className="flex flex-col gap-2 px-4 pb-4">
-                        {keywordResults.map((note) => renderNote(note))}
-                    </ul>
-                );
-            })()}
-            {mode === 'semantic' && modelStatus === 'ready' && query && (() => {
-                if (semanticResults.length === 0) {
-                    return <p className="px-4 text-muted">No semantically similar notes found.</p>;
-                }
-                return (
-                    <ul className="flex flex-col gap-2 px-4 pb-4">
-                        {semanticResults.map((r) => renderNote(r.note, r.score))}
-                    </ul>
-                );
-            })()}
+            {mode === 'keyword' &&
+                allNotes !== undefined &&
+                query &&
+                (() => {
+                    if (keywordResults.length === 0) {
+                        return <p className="px-4 text-muted">No notes match your search.</p>;
+                    }
+                    return (
+                        <ul className="flex flex-col gap-2 px-4 pb-4">
+                            {keywordResults.map(note => renderNote(note))}
+                        </ul>
+                    );
+                })()}
+            {mode === 'semantic' &&
+                modelStatus === 'ready' &&
+                query &&
+                (() => {
+                    if (semanticResults.length === 0) {
+                        return (
+                            <p className="px-4 text-muted">No semantically similar notes found.</p>
+                        );
+                    }
+                    return (
+                        <ul className="flex flex-col gap-2 px-4 pb-4">
+                            {semanticResults.map(r => renderNote(r.note, r.score))}
+                        </ul>
+                    );
+                })()}
         </div>
     );
 }

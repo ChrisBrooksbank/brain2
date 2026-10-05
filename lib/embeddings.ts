@@ -1,4 +1,4 @@
-import { db, putEmbedding, getAllEmbeddings } from './db';
+import { db, putEmbedding, getAllEmbeddings, getConfig } from './db';
 
 type Pipeline = (
     texts: string[],
@@ -41,6 +41,9 @@ export function cosineSimilarity(a: number[], b: number[]): number {
 
 export async function embedNote(noteId: number, text: string): Promise<void> {
     try {
+        // Semantic search is opt-in: don't download the ~33 MB model on save
+        // unless the user has enabled it.
+        if ((await getConfig('semantic_search_enabled')) !== 'true') return;
         const vector = await generateEmbedding(text);
         const note = await db.notes.get(noteId);
         if (!note) return;
