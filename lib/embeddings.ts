@@ -41,7 +41,7 @@ export function cosineSimilarity(a: number[], b: number[]): number {
 
 export async function embedNote(noteId: number, text: string): Promise<void> {
     try {
-        // Semantic search is opt-in: don't download the ~33 MB model on save
+        // Semantic search is opt-in: don't download the model (about 110 MB) on save
         // unless the user has enabled it.
         if ((await getConfig('semantic_search_enabled')) !== 'true') return;
         const vector = await generateEmbedding(text);
