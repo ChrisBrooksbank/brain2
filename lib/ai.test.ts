@@ -40,9 +40,7 @@ describe('autoTagNote', () => {
 
     it('calls the Anthropic API with the correct headers and note text', async () => {
         mockGetConfig.mockResolvedValue('sk-test-key');
-        mockFetch.mockReturnValue(
-            makeResponse(true, { content: [{ text: '["work","ideas"]' }] }),
-        );
+        mockFetch.mockReturnValue(makeResponse(true, { content: [{ text: '["work","ideas"]' }] }));
         mockUpdateNote.mockResolvedValue(undefined);
 
         await autoTagNote(42, 'my note text');
@@ -60,7 +58,7 @@ describe('autoTagNote', () => {
     it('updates the note with lowercase tags on success', async () => {
         mockGetConfig.mockResolvedValue('sk-test-key');
         mockFetch.mockReturnValue(
-            makeResponse(true, { content: [{ text: '["Work","Ideas","TODO"]' }] }),
+            makeResponse(true, { content: [{ text: '["Work","Ideas","TODO"]' }] })
         );
         mockUpdateNote.mockResolvedValue(undefined);
 
@@ -68,6 +66,18 @@ describe('autoTagNote', () => {
 
         expect(mockUpdateNote).toHaveBeenCalledOnce();
         expect(mockUpdateNote).toHaveBeenCalledWith(7, { tags: ['work', 'ideas', 'todo'] });
+    });
+
+    it('parses tags wrapped in a markdown code fence', async () => {
+        mockGetConfig.mockResolvedValue('sk-test-key');
+        mockFetch.mockReturnValue(
+            makeResponse(true, { content: [{ text: '```json\n["Work", "#ideas"]\n```' }] })
+        );
+        mockUpdateNote.mockResolvedValue(undefined);
+
+        await autoTagNote(7, 'plan the project');
+
+        expect(mockUpdateNote).toHaveBeenCalledWith(7, { tags: ['work', 'ideas'] });
     });
 
     it('does not update the note when the API returns a non-ok status', async () => {
@@ -93,7 +103,7 @@ describe('autoTagNote', () => {
             Promise.resolve({
                 ok: true,
                 json: () => Promise.resolve({ content: [{ text: 'not-json' }] }),
-            }),
+            })
         );
 
         await expect(autoTagNote(1, 'some text')).resolves.toBeUndefined();
@@ -103,7 +113,7 @@ describe('autoTagNote', () => {
     it('merges AI tags with existing hashtag-extracted tags', async () => {
         mockGetConfig.mockResolvedValue('sk-test-key');
         mockFetch.mockReturnValue(
-            makeResponse(true, { content: [{ text: '["ai-tag","overlap"]' }] }),
+            makeResponse(true, { content: [{ text: '["ai-tag","overlap"]' }] })
         );
         mockUpdateNote.mockResolvedValue(undefined);
         mockNotesGet.mockResolvedValue({ tags: ['overlap', 'hashtag'] });
@@ -117,9 +127,7 @@ describe('autoTagNote', () => {
 
     it('does not update when the response tags are not an array of strings', async () => {
         mockGetConfig.mockResolvedValue('sk-test-key');
-        mockFetch.mockReturnValue(
-            makeResponse(true, { content: [{ text: '{"tags":["work"]}' }] }),
-        );
+        mockFetch.mockReturnValue(makeResponse(true, { content: [{ text: '{"tags":["work"]}' }] }));
 
         await autoTagNote(1, 'some text');
 

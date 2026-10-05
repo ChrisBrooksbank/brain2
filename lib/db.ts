@@ -50,11 +50,14 @@ export const db = new Brain2DB();
 
 // Note mutation helpers
 
-export async function addNote(text: string): Promise<number> {
-    return db.notes.add({ text, tags: [], createdAt: new Date(), archived: false });
+export async function addNote(text: string, tags: string[] = []): Promise<number> {
+    return db.notes.add({ text, tags, createdAt: new Date(), archived: false });
 }
 
-export async function updateNote(id: number, changes: Partial<Pick<Note, 'text' | 'tags'>>): Promise<void> {
+export async function updateNote(
+    id: number,
+    changes: Partial<Pick<Note, 'text' | 'tags'>>
+): Promise<void> {
     await db.notes.update(id, changes);
 }
 

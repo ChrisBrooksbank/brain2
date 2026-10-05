@@ -48,7 +48,11 @@ const sampleNotes = [
 
 beforeEach(() => {
     vi.clearAllMocks();
-    Object.defineProperty(navigator, 'vibrate', { value: vi.fn(), configurable: true, writable: true });
+    Object.defineProperty(navigator, 'vibrate', {
+        value: vi.fn(),
+        configurable: true,
+        writable: true,
+    });
 });
 
 describe('NotesView', () => {
@@ -95,7 +99,7 @@ describe('NotesView', () => {
         });
         expect(screen.getAllByRole('button', { name: /collapse note/i })[0]).toHaveAttribute(
             'aria-expanded',
-            'true',
+            'true'
         );
 
         await act(async () => {
@@ -103,7 +107,7 @@ describe('NotesView', () => {
         });
         expect(screen.getAllByRole('button', { name: /expand note/i })[0]).toHaveAttribute(
             'aria-expanded',
-            'false',
+            'false'
         );
     });
 
@@ -186,8 +190,20 @@ describe('NotesView', () => {
 
     it('filters notes when a tag chip is clicked', async () => {
         const notesWithTags = [
-            { id: 1, text: 'Note with alpha', tags: ['alpha'], createdAt: new Date('2024-01-02'), archived: false },
-            { id: 2, text: 'Note with beta', tags: ['beta'], createdAt: new Date('2024-01-01'), archived: false },
+            {
+                id: 1,
+                text: 'Note with alpha',
+                tags: ['alpha'],
+                createdAt: new Date('2024-01-02'),
+                archived: false,
+            },
+            {
+                id: 2,
+                text: 'Note with beta',
+                tags: ['beta'],
+                createdAt: new Date('2024-01-01'),
+                archived: false,
+            },
         ];
         mockUseLiveQuery.mockReturnValue(notesWithTags);
         render(<NotesView />);
@@ -196,7 +212,7 @@ describe('NotesView', () => {
 
         // Click the 'alpha' filter chip (the button with aria-pressed)
         const alphaChips = screen.getAllByRole('button', { name: 'alpha' });
-        const filterChip = alphaChips.find((b) => b.hasAttribute('aria-pressed'));
+        const filterChip = alphaChips.find(b => b.hasAttribute('aria-pressed'));
         await act(async () => {
             fireEvent.click(filterChip!);
         });
@@ -207,14 +223,26 @@ describe('NotesView', () => {
 
     it('clears filter when active tag chip is clicked again', async () => {
         const notesWithTags = [
-            { id: 1, text: 'Note with alpha', tags: ['alpha'], createdAt: new Date('2024-01-02'), archived: false },
-            { id: 2, text: 'Note with beta', tags: ['beta'], createdAt: new Date('2024-01-01'), archived: false },
+            {
+                id: 1,
+                text: 'Note with alpha',
+                tags: ['alpha'],
+                createdAt: new Date('2024-01-02'),
+                archived: false,
+            },
+            {
+                id: 2,
+                text: 'Note with beta',
+                tags: ['beta'],
+                createdAt: new Date('2024-01-01'),
+                archived: false,
+            },
         ];
         mockUseLiveQuery.mockReturnValue(notesWithTags);
         render(<NotesView />);
 
         const alphaChips = screen.getAllByRole('button', { name: 'alpha' });
-        const filterChip = alphaChips.find((b) => b.hasAttribute('aria-pressed'));
+        const filterChip = alphaChips.find(b => b.hasAttribute('aria-pressed'));
         await act(async () => {
             fireEvent.click(filterChip!);
         });
@@ -228,9 +256,63 @@ describe('NotesView', () => {
         expect(screen.getByText('Note with beta')).toBeInTheDocument();
     });
 
+    it('drops a selected tag filter once no note carries that tag', async () => {
+        const withAlpha = [
+            {
+                id: 1,
+                text: 'Note with alpha',
+                tags: ['alpha'],
+                createdAt: new Date('2024-01-02'),
+                archived: false,
+            },
+            {
+                id: 2,
+                text: 'Note with beta',
+                tags: ['beta'],
+                createdAt: new Date('2024-01-01'),
+                archived: false,
+            },
+        ];
+        mockUseLiveQuery.mockReturnValue(withAlpha);
+        const { rerender } = render(<NotesView />);
+        await act(async () => {
+            fireEvent.click(screen.getByRole('button', { name: 'alpha' }));
+        });
+        expect(screen.queryByText('Note with beta')).not.toBeInTheDocument();
+
+        // The only alpha note gets archived, so the live query no longer returns it
+        mockUseLiveQuery.mockReturnValue([withAlpha[1]]);
+        rerender(<NotesView />);
+        expect(screen.getByText('Note with beta')).toBeInTheDocument();
+    });
+
+    it('does not nest wiki-link buttons inside another button when expanded', async () => {
+        mockUseLiveQuery.mockReturnValue([
+            {
+                id: 1,
+                text: 'See [[Other]]',
+                tags: [],
+                createdAt: new Date('2024-01-02'),
+                archived: false,
+            },
+        ]);
+        render(<NotesView />);
+        await act(async () => {
+            fireEvent.click(screen.getByRole('button', { name: /expand note/i }));
+        });
+        const link = screen.getByRole('button', { name: 'Other' });
+        expect(link.parentElement?.closest('button')).toBeNull();
+    });
+
     it('does not render filter chips when notes have no tags', () => {
         const noTagNotes = [
-            { id: 1, text: 'Note one', tags: [], createdAt: new Date('2024-01-01'), archived: false },
+            {
+                id: 1,
+                text: 'Note one',
+                tags: [],
+                createdAt: new Date('2024-01-01'),
+                archived: false,
+            },
         ];
         mockUseLiveQuery.mockReturnValue(noTagNotes);
         render(<NotesView />);
